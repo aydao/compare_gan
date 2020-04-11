@@ -3,29 +3,43 @@ options.z_dim = 128
 
 options.architecture = "resnet_biggan_deep_arch"
 ModularGAN.conditional = True
+ModularGAN.deprecated_split_disc_calls = False
+ModularGAN.ema_decay = 0.9999
+ModularGAN.ema_start_step = 0
+ModularGAN.experimental_force_graph_unroll = False
+ModularGAN.experimental_joint_gen_for_disc = False
+ModularGAN.fit_label_distribution = False
+ModularGAN.g_use_ema = True
 options.batch_size = 1024
 options.gan_class = @ModularGAN
 options.lamba = 1
 options.training_steps = 250000
 weights.initializer = "orthogonal"
 spectral_norm.singular_value = "auto"
+spectral_norm.epsilon = 1e-4
 
 # Generator
 G.batch_norm_fn = @conditional_batch_norm
+conditional_batch_norm.use_bias = False
 G.spectral_norm = True
-ModularGAN.g_use_ema = True
 resnet_biggan_deep.Generator.ch = 128
 resnet_biggan_deep.Generator.embed_y = True
-standardize_batch.decay = 0.999
-standardize_batch.epsilon = 1e-5
+resnet_biggan_deep.Generator.embed_y_dim = 128
+resnet_biggan_deep.Generator.experimental_fast_conv_to_rgb = False
+standardize_batch.decay = 0.99
+standardize_batch.epsilon = 1e-4
 standardize_batch.use_moving_averages = False
-standardize_batch.use_cross_replica_mean = False 
+standardize_batch.use_cross_replica_mean = None
+cross_replica_moments.group_size = None
+cross_replica_moments.parallel = True
 
 # Discriminator
 options.disc_iters = 2
+D.batch_norm_fn = None
+D.layer_norm = False
 D.spectral_norm = True
 resnet_biggan_deep.Discriminator.ch = 128
-resnet_biggan_deep.Discriminator.project_y = True # False
+resnet_biggan_deep.Discriminator.project_y = True
 
 # Loss and optimizer
 loss.fn = @hinge
