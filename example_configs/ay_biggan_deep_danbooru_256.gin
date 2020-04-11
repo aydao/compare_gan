@@ -3,7 +3,7 @@ options.z_dim = 128
 
 options.architecture = "resnet_biggan_deep_arch"
 ModularGAN.conditional = True
-options.batch_size = 4096 # make it 16x the TPU pod size
+options.batch_size = 1024
 options.gan_class = @ModularGAN
 options.lamba = 1
 options.training_steps = 250000
@@ -16,9 +16,10 @@ G.spectral_norm = True
 ModularGAN.g_use_ema = True
 resnet_biggan_deep.Generator.ch = 128
 resnet_biggan_deep.Generator.embed_y = True
-standardize_batch.decay = 0.9
-standardize_batch.epsilon = 1e-4
+standardize_batch.decay = 0.999
+standardize_batch.epsilon = 1e-5
 standardize_batch.use_moving_averages = False
+standardize_batch.use_cross_replica_mean = False 
 
 # Discriminator
 options.disc_iters = 2
