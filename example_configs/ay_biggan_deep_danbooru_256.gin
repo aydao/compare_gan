@@ -35,7 +35,7 @@ dataset.seed = 777
 
 # Parameters for resnet_biggan_deep.Discriminator:
 # ==============================================================================
-resnet_biggan_deep.Discriminator.blocks_with_attention = 'B1'
+resnet_biggan_deep.Discriminator.blocks_with_attention = '64'
 resnet_biggan_deep.Discriminator.ch = 128
 resnet_biggan_deep.Discriminator.project_y = False
 
@@ -46,7 +46,7 @@ G.spectral_norm = True
 
 # Parameters for resnet_biggan_deep.Generator:
 # ==============================================================================
-resnet_biggan_deep.Generator.blocks_with_attention = 'B4'
+resnet_biggan_deep.Generator.blocks_with_attention = '64'
 resnet_biggan_deep.Generator.ch = 128
 resnet_biggan.Generator.embed_bias = False
 resnet_biggan_deep.Generator.embed_y = False
