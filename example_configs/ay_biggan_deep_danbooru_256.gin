@@ -51,8 +51,8 @@ resnet_biggan_deep.Generator.ch = 128
 resnet_biggan.Generator.embed_bias = False
 resnet_biggan_deep.Generator.embed_y = False
 resnet_biggan_deep.Generator.embed_y_dim = 128
-resnet_biggan_deep.Generator.embed_z = False
-resnet_biggan_deep.Generator.hierarchical_z = True
+#### resnet_biggan_deep.Generator.embed_z = False
+#### resnet_biggan_deep.Generator.hierarchical_z = True
 resnet_biggan_deep.Generator.experimental_fast_conv_to_rgb = False
 
 # Parameters for hinge:
