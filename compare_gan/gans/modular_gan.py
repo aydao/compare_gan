@@ -324,7 +324,7 @@ class ModularGAN(AbstractGAN):
     # create a 8x8 image grid.
     batch_size_per_replica = images.shape[0].value
     num_replicas = params["context"].num_replicas if "context" in params else 1
-    grid_shape = (3, 3)
+    grid_shape = (8, 8)
     total_num_images = batch_size_per_replica * num_replicas
     sample_num_images = np.prod(grid_shape)
     if total_num_images >= sample_num_images:

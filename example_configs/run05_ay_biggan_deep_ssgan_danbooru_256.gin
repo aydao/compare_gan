@@ -67,8 +67,8 @@ loss.fn = @hinge
 # Parameters for ModularGAN:
 # ==============================================================================
 ModularGAN.conditional = False
-ModularGAN.g_lr = 0.000025  # verify if using SSGAN instead
-ModularGAN.d_lr = 0.000025 # verify if using SSGAN instead
+ModularGAN.g_lr = 0.0004  # verify if using SSGAN instead
+ModularGAN.d_lr = 0.00005 # verify if using SSGAN instead
 ModularGAN.g_optimizer_fn = @tf.train.AdamOptimizer
 ModularGAN.d_optimizer_fn = @tf.train.AdamOptimizer
 ModularGAN.g_use_ema = True
@@ -97,7 +97,7 @@ options.lamba = 1
 options.training_steps = 250000
 options.disc_iters = 2
 options.discriminator_normalization = None
-options.gan_class = @ModularGAN # @SSGAN # @ModularGAN
+options.gan_class = @SSGAN # @ModularGAN
 
 # Parameters for penalty:
 # ==============================================================================
@@ -105,7 +105,7 @@ penalty.fn = @no_penalty
 
 # Parameters for run_config:
 # ==============================================================================
-run_config.iterations_per_loop = 250
+run_config.iterations_per_loop = 500
 run_config.keep_checkpoint_every_n_hours = 1
 run_config.keep_checkpoint_max = 1000
 run_config.save_checkpoints_steps = 500
@@ -115,18 +115,18 @@ run_config.tf_random_seed = None
 # Parameters for spectral_norm:
 # ==============================================================================
 spectral_norm.singular_value = "auto"
-spectral_norm.epsilon = 1e-5
+spectral_norm.epsilon = 1e-8
 
 # Parameters for SSGAN:
 # ==============================================================================
-# SSGAN.g_lr = 0.00025  # verify if using SSGAN instead
-# SSGAN.d_lr = 0.00025 # verify if using SSGAN instead
-# SSGAN.d_optimizer_fn = @tf.train.AdamOptimizer
-# SSGAN.g_optimizer_fn = @tf.train.AdamOptimizer
-# SSGAN.rotated_batch_size = 1024
-# SSGAN.self_supervision = 'rotation_gan'
-# SSGAN.weight_rotation_loss_d = 1.0
-# SSGAN.weight_rotation_loss_g = 0.0
+SSGAN.g_lr = 0.0004  # verify if using SSGAN instead
+SSGAN.d_lr = 0.00005 # verify if using SSGAN instead
+SSGAN.d_optimizer_fn = @tf.train.AdamOptimizer
+SSGAN.g_optimizer_fn = @tf.train.AdamOptimizer
+SSGAN.rotated_batch_size = 1024
+SSGAN.self_supervision = 'rotation_gan'
+SSGAN.weight_rotation_loss_d = 1.0
+SSGAN.weight_rotation_loss_g = 0.2
 
 # Parameters for standardize_batch:
 # ==============================================================================
