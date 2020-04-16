@@ -75,7 +75,7 @@ ModularGAN.ema_start_step = 250000
 ModularGAN.experimental_force_graph_unroll = False
 ModularGAN.experimental_joint_gen_for_disc = False
 ModularGAN.fit_label_distribution = False
-ModularGAN.g_lr = 000025
+ModularGAN.g_lr = 0.00025
 ModularGAN.g_optimizer_fn = @tf.train.AdamOptimizer
 ModularGAN.g_use_ema = True
 
