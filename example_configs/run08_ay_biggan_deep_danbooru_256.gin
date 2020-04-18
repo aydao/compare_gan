@@ -67,7 +67,7 @@ loss.fn = @hinge
 # Parameters for ModularGAN:
 # ==============================================================================
 ModularGAN.conditional = True
-ModularGAN.d_lr = 0.0005 # verify if using SSGAN instead
+ModularGAN.d_lr = 0.0002 # verify if using SSGAN instead
 ModularGAN.d_optimizer_fn = @tf.train.AdamOptimizer
 ModularGAN.deprecated_split_disc_calls = False
 ModularGAN.ema_decay = 0.9999
@@ -75,7 +75,7 @@ ModularGAN.ema_start_step = 250000
 ModularGAN.experimental_force_graph_unroll = False
 ModularGAN.experimental_joint_gen_for_disc = False
 ModularGAN.fit_label_distribution = False
-ModularGAN.g_lr = 0.0001 # verify if using SSGAN instead
+ModularGAN.g_lr = 0.0005 # verify if using SSGAN instead
 ModularGAN.g_optimizer_fn = @tf.train.AdamOptimizer
 ModularGAN.g_use_ema = True
 
