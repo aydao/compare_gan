@@ -41,7 +41,7 @@ resnet_biggan.Discriminator.project_y = False
 
 # Parameters for G:
 # ==============================================================================
-G.batch_norm_fn = @conditional_batch_norm
+G.batch_norm_fn = @batch_norm
 G.spectral_norm = True
 
 # Parameters for resnet_biggan.Generator:
