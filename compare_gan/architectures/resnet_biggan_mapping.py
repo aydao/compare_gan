@@ -280,7 +280,7 @@ class Generator(abstract_arch.AbstractGenerator):
     fmaps = dlatent_size # dlatent_size if layer_idx == mapping_layers - 1 else mapping_fmaps
     # x = apply_bias_act(dense_layer(x, fmaps=fmaps, lrmul=mapping_lrmul), act=act, lrmul=mapping_lrmul)
     mapping_lrmul = 0.01
-    x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc0"))
+    x = lrelu(linear(x, z_dim, lrmul=mapping_lrmul, scope="g_fc0"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc1"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc2"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc3"))
