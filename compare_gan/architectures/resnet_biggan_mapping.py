@@ -81,6 +81,8 @@ from absl import logging
 from compare_gan.architectures import abstract_arch
 from compare_gan.architectures import arch_ops as ops
 from compare_gan.architectures import resnet_ops
+from compare_gan.architectures.arch_ops import linear
+from compare_gan.architectures.arch_ops import lrelu
 
 import gin
 from six.moves import range
