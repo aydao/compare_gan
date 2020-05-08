@@ -557,14 +557,15 @@ def graph_spectral_norm(w):
   return w
 
 def linear(inputs, output_size, scope=None, stddev=0.02, bias_start=0.0,
-           use_sn=False, use_bias=True):
+           use_sn=False, use_bias=True, lrmul=1):
   """Linear layer without the non-linear activation applied."""
+  runtime_coef = lrmul # naming conventions adopted from StyleGAN
   shape = inputs.get_shape().as_list()
   with tf.variable_scope(scope or "linear"):
     kernel = tf.get_variable(
         "kernel",
         [shape[1], output_size],
-        initializer=weight_initializer(stddev=stddev))
+        initializer=weight_initializer(stddev=stddev)) * runtime_coef
     kernel = graph_spectral_norm(kernel)
     if use_sn:
       kernel, norm = spectral_norm(kernel)
