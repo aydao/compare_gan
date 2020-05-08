@@ -239,7 +239,7 @@ class Generator(abstract_arch.AbstractGenerator):
     out_channels = [self._ch * c for c in channel_multipliers[1:]]
     return in_channels, out_channels
 
-  def apply(self, z_in, y, is_training):
+  def apply(self, z, y, is_training):
     """Build the generator network for the given inputs.
 
     Args:
@@ -251,6 +251,8 @@ class Generator(abstract_arch.AbstractGenerator):
     Returns:
       A tensor of size [batch_size] + self._image_shape with values in [0, 1].
     """
+    z_in = z
+    z = None # clear z for now
     shape_or_none = lambda t: None if t is None else t.shape
     logging.info("[Generator] inputs are z_in=%s, y=%s", z_in.shape, shape_or_none(y))
     # Each block upscales by a factor of 2.
