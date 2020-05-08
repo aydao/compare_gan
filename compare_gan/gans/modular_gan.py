@@ -31,6 +31,7 @@ from compare_gan.architectures import infogan
 from compare_gan.architectures import resnet30
 from compare_gan.architectures import resnet5
 from compare_gan.architectures import resnet_biggan
+from compare_gan.architectures import resnet_biggan_mapping
 from compare_gan.architectures import resnet_biggan_deep
 from compare_gan.architectures import resnet_cifar
 from compare_gan.architectures import resnet_stl
