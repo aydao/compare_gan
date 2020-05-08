@@ -169,7 +169,7 @@ class Generator(abstract_arch.AbstractGenerator):
                ch=96,
                blocks_with_attention="64",
                hierarchical_z=True,
-               =False,
+               embed_z=False,
                embed_y=True,
                embed_y_dim=128,
                embed_bias=False,
