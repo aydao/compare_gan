@@ -276,10 +276,10 @@ class Generator(abstract_arch.AbstractGenerator):
       x *= tf.rsqrt(tf.reduce_mean(tf.square(x), axis=1, keepdims=True) + 1e-8)
       
     # Mapping layers.
-    dlatent_size = 512
+    dlatent_size = z_dim # 512
     fmaps = dlatent_size # dlatent_size if layer_idx == mapping_layers - 1 else mapping_fmaps
     # x = apply_bias_act(dense_layer(x, fmaps=fmaps, lrmul=mapping_lrmul), act=act, lrmul=mapping_lrmul)
-    mapping_lrmul = 0.01
+    mapping_lrmul = 1 # 0.01
     x = lrelu(linear(x, z_dim, lrmul=mapping_lrmul, scope="g_fc0"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc1"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc2"))
@@ -287,7 +287,7 @@ class Generator(abstract_arch.AbstractGenerator):
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc4"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc5"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc6"))
-    x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc7"))
+    x = lrelu(linear(x, z_dim, lrmul=mapping_lrmul, scope="g_fc7"))
 
     z = x # z is basically 'w' from StyleGAN, the dlatent
 
