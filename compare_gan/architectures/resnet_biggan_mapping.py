@@ -272,8 +272,8 @@ class Generator(abstract_arch.AbstractGenerator):
     x = z_in
 
     # Normalize latents.
-    if True: # if self._normalize_latents: ...
-      x *= tf.rsqrt(tf.reduce_mean(tf.square(x), axis=1, keepdims=True) + 1e-8)
+    #if True: # if self._normalize_latents: ...
+    #  x *= tf.rsqrt(tf.reduce_mean(tf.square(x), axis=1, keepdims=True) + 1e-8)
       
     # Mapping layers.
     dlatent_size = z_dim # 512
