@@ -9,4 +9,4 @@ export LABELS=""
 export NUM_CLASSES=1000
 export TPU_SPLIT_COMPILE_AND_EXECUTE=1
 export TF_TPU_WATCHDOG_TIMEOUT=1800
-python3 wrapper.py compare_gan/main.py --use_tpu --tfds_data_dir 'gs://darnbooru-euw4a/tensorflow_datasets/' --model_dir "${MODEL_DIR}" --gin_config example_configs/biggan_danbooru128.gin "$@"
+python3 wrapper.py compare_gan/main.py --use_tpu --tfds_data_dir 'gs://ay1-euw4a/datasets/' --model_dir "${MODEL_DIR}" --gin_config example_configs/ay_bgm_run02.gin "$@"
