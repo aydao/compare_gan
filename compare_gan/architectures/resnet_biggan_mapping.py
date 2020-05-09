@@ -279,7 +279,7 @@ class Generator(abstract_arch.AbstractGenerator):
     dlatent_size = z_dim # 512
     fmaps = dlatent_size # dlatent_size if layer_idx == mapping_layers - 1 else mapping_fmaps
     # x = apply_bias_act(dense_layer(x, fmaps=fmaps, lrmul=mapping_lrmul), act=act, lrmul=mapping_lrmul)
-    mapping_lrmul = 1 # 0.01
+    mapping_lrmul = 0.01
     x = lrelu(linear(x, z_dim, lrmul=mapping_lrmul, scope="g_fc0"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc1"))
     x = lrelu(linear(x, fmaps, lrmul=mapping_lrmul, scope="g_fc2"))
@@ -297,8 +297,14 @@ class Generator(abstract_arch.AbstractGenerator):
     y_per_block = num_blocks * [y]
     
     # Broadcast.
-    z0 = z
-    z_per_block = num_blocks * [z]
+    if self._hierarchical_z:
+      z_per_block = tf.split(z, num_blocks + 1, axis=1)
+      z0, z_per_block = z_per_block[0], z_per_block[1:]
+      if y is not None:
+        y_per_block = [tf.concat([zi, y], 1) for zi in z_per_block]
+    else:
+      z0 = z
+      z_per_block = num_blocks * [z]
 
     # Update moving average of W. 
     # (todo)
