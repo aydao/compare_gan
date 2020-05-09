@@ -264,9 +264,9 @@ class Generator(abstract_arch.AbstractGenerator):
     in_channels, out_channels = self._get_in_out_channels()
     num_blocks = len(in_channels)
 
-    #if self._embed_z:
-    #  z = ops.linear(z, z_dim, scope="embed_z", use_sn=False,
-    #                 use_bias=self._embed_bias)
+    if self._embed_z:
+      z = ops.linear(z, z_dim, scope="embed_z", use_sn=False,
+                     use_bias=self._embed_bias)
 
     # Begin latents in -> mapping network.
     x = z_in
