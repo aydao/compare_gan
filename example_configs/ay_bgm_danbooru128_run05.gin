@@ -52,7 +52,7 @@ G.spectral_norm = True
 # Parameters for resnet_biggan_mapping.Generator:
 # ==============================================================================
 resnet_biggan_mapping.Generator.blocks_with_attention = '64'
-resnet_biggan_mapping.Generator.ch = 96
+resnet_biggan_mapping.Generator.ch = 192
 resnet_biggan_mapping.Generator.channel_multipliers = None
 resnet_biggan_mapping.Generator.embed_bias = False
 resnet_biggan_mapping.Generator.embed_y = True
@@ -72,7 +72,7 @@ loss.fn = @hinge
 # Parameters for ModularGAN:
 # ==============================================================================
 ModularGAN.conditional = True
-ModularGAN.d_lr = 0.01
+ModularGAN.d_lr = 0.0005
 ModularGAN.d_lr_mul = 1.0
 ModularGAN.d_optimizer_fn = @tf.train.AdamOptimizer
 ModularGAN.deprecated_split_disc_calls = False
