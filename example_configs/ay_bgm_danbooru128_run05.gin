@@ -40,7 +40,7 @@ dataset.seed = 90232
 # Parameters for resnet_biggan_mapping.Discriminator:
 # ==============================================================================
 resnet_biggan_mapping.Discriminator.blocks_with_attention = '64'
-resnet_biggan_mapping.Discriminator.ch = 96
+resnet_biggan_mapping.Discriminator.ch = 128
 resnet_biggan_mapping.Discriminator.channel_multipliers = None
 resnet_biggan_mapping.Discriminator.project_y = True
 
@@ -52,7 +52,7 @@ G.spectral_norm = True
 # Parameters for resnet_biggan_mapping.Generator:
 # ==============================================================================
 resnet_biggan_mapping.Generator.blocks_with_attention = '64'
-resnet_biggan_mapping.Generator.ch = 192
+resnet_biggan_mapping.Generator.ch = 96
 resnet_biggan_mapping.Generator.channel_multipliers = None
 resnet_biggan_mapping.Generator.embed_bias = False
 resnet_biggan_mapping.Generator.embed_y = True

@@ -40,7 +40,7 @@ dataset.seed = 343721
 # Parameters for resnet_biggan_mapping.Discriminator:
 # ==============================================================================
 resnet_biggan_mapping.Discriminator.blocks_with_attention = 'B2'
-resnet_biggan_mapping.Discriminator.ch = 192
+resnet_biggan_mapping.Discriminator.ch = 128
 resnet_biggan_mapping.Discriminator.channel_multipliers = None
 resnet_biggan_mapping.Discriminator.project_y = True
 
