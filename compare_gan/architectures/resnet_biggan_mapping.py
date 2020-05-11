@@ -84,6 +84,7 @@ from compare_gan.architectures import resnet_ops
 from compare_gan.architectures.arch_ops import linear
 from compare_gan.architectures.arch_ops import lrelu
 
+import numpy as np
 import gin
 from six.moves import range
 import tensorflow as tf
