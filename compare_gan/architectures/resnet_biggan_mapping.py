@@ -277,23 +277,30 @@ class Generator(abstract_arch.AbstractGenerator):
     #  x *= tf.rsqrt(tf.reduce_mean(tf.square(x), axis=1, keepdims=True) + 1e-8)
       
     # Mapping layers.
-    dlatent_size = z_dim # 512
-    fmaps = dlatent_size # dlatent_size if layer_idx == mapping_layers - 1 else mapping_fmaps
-    # x = apply_bias_act(dense_layer(x, fmaps=fmaps, lrmul=mapping_lrmul), act=act, lrmul=mapping_lrmul)
+    dlatent_size = 512
+    fmaps = dlatent_size
     mapping_lrmul = 0.01
-    fan_in = z_dim * z_dim
-    gain = 1
-    he_std = gain / np.sqrt(fan_in) # He init
     init_std = 1.0 / mapping_lrmul
+    gain = 1
+    fan_in = z_dim * fmaps
+    he_std = gain / np.sqrt(fan_in) # He init
     runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
-    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="g_fc0", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc1", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc2", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc3", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc4", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc5", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc6", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="g_fc7", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc0", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    # replicate He init computations to account for layer difference
+    fan_in = z_dim * z_dim
+    he_std = gain / np.sqrt(fan_in) # He init
+    runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc1", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc2", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc3", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc4", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc5", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc6", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    # replicate He init computations to account for layer difference
+    fan_in = z_dim * z_dim
+    he_std = gain / np.sqrt(fan_in) # He init
+    runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
+    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="w_fc7", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
 
     z = x # z is basically 'w' from StyleGAN, the dlatent
 
