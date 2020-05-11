@@ -285,7 +285,7 @@ class Generator(abstract_arch.AbstractGenerator):
     gain = 1
     he_std = gain / np.sqrt(fan_in) # He init
     init_std = 1.0 / mapping_lrmul
-    runtime_coef = he_std * lrmul # Naming conventions from StyleGAN
+    runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
     x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="g_fc0", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
     x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc1", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
     x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc2", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
