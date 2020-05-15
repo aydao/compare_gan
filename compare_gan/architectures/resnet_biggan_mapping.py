@@ -280,8 +280,8 @@ class Generator(abstract_arch.AbstractGenerator):
     dlatent_size = z_dim # 512
     fmaps = dlatent_size # dlatent_size if layer_idx == mapping_layers - 1 else mapping_fmaps
     # x = apply_bias_act(dense_layer(x, fmaps=fmaps, lrmul=mapping_lrmul), act=act, lrmul=mapping_lrmul)
-    mapping_lrmul = 0.01
-    fan_in = z_dim * z_dim
+    mapping_lrmul = 1.0 # 0.01
+    fan_in = z_dim * fmaps # this would need to be different if the layer sizes below were different
     gain = 1
     he_std = gain / np.sqrt(fan_in) # He init
     init_std = 1.0 / mapping_lrmul
