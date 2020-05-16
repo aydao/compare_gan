@@ -279,7 +279,7 @@ class Generator(abstract_arch.AbstractGenerator):
     # Mapping layers.
     dlatent_size = 512
     fmaps = dlatent_size
-    mapping_lrmul = 0.01
+    mapping_lrmul = 1.0 # 0.01
     init_std = 1.0 / mapping_lrmul
     gain = 1
     fan_in = z_dim * fmaps
@@ -297,7 +297,7 @@ class Generator(abstract_arch.AbstractGenerator):
     x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc5", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
     x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc6", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
     # replicate He init computations to account for layer difference
-    fan_in = z_dim * z_dim
+    fan_in = fmaps * z_dim
     he_std = gain / np.sqrt(fan_in) # He init
     runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
     x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="w_fc7", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
