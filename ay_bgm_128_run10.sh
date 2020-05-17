@@ -2,7 +2,7 @@
 set -ex
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/tfk/lib}"
 export TPU_HOST=${TPU_HOST:-10.255.128.3}
-export TPU_NAME="${TPU_NAME:-tpu-v3-256-euw4a-2}"
+export TPU_NAME="${TPU_NAME:-tpu-v3-128-euw4a-1}"
 export MODEL_DIR="${MODEL_DIR:-gs://ay1-euw4a/aytest/bgm-danbooru2019-s-128-run10/}"
 export DATASETS=gs://ay1-euw4a/datasets/danbooru2019-s/danbooru2019-s-0*
 export LABELS=""
