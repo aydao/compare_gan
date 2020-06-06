@@ -74,21 +74,21 @@ def get_options_dict(batch_size=gin.REQUIRED,
                      gan_class=gin.REQUIRED,
                      architecture=gin.REQUIRED,
                      training_steps=gin.REQUIRED,
-                     datasets=os.environ['DATASETS'] if 'DATASETS' in os.environ else None,
-                     labels=os.environ['LABELS'] if 'LABELS' in os.environ else None,
-                     random_labels=True if 'RANDOM_LABELS' in os.environ else False,
-                     num_classes=int(os.environ['NUM_CLASSES']) if 'NUM_CLASSES' in os.environ else 1,
-                     transpose_input=False,
-                     discriminator_normalization=None,
-                     lamba=1,
-                     disc_iters=1,
-                     z_dim=128,
-                     d_flood=0.0,
-                     g_flood=0.0,
+                     datasets,#=os.environ['DATASETS'] if 'DATASETS' in os.environ else None,
+                     labels,#=os.environ['LABELS'] if 'LABELS' in os.environ else None,
+                     random_labels,#=True if 'RANDOM_LABELS' in os.environ else False,
+                     num_classes,#=int(os.environ['NUM_CLASSES']) if 'NUM_CLASSES' in os.environ else 1,
+                     transpose_input,#=False,
+                     discriminator_normalization,#=None,
+                     lamba,#=1, # note: the misspelling of lambda as lamba is intentional...
+                     disc_iters,#=1,
+                     z_dim,#=128,
+                     d_flood,#=0.0,
+                     g_flood,#=0.0,
                      description="Describe your GIN config. (This appears in the tensorboard text tab.)",
-                     model_dir=os.environ['MODEL_DIR'] if 'MODEL_DIR' in os.environ else None,
-                     image_grid_width=3,
-                     image_grid_height=3,
+                     model_dir,#=os.environ['MODEL_DIR'] if 'MODEL_DIR' in os.environ else None,
+                     image_grid_width,#=3,
+                     image_grid_height,#=3,
                      image_grid_resolution=1024):
   """Parse legacy options from Gin configurations into a Python dict.
 
@@ -140,8 +140,6 @@ class TaskManager(object):
 
   def __init__(self, model_dir):
     self._model_dir = model_dir
-    if os.environ["MODEL_DIR"] is None:
-      os.environ["MODEL_DIR"] = model_dir
 
   @property
   def model_dir(self):

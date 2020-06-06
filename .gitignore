@@ -17,3 +17,6 @@ dist/
 *.sublime-project
 *.sublime-workspace
 /.idea
+
+# Visual Studio Code
+.vscode/*.json
