@@ -132,7 +132,7 @@ run_config.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-512-run1/'
 begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-512-run1/'
 run_config.save_checkpoints_steps = 250
 run_config.single_core = False
-run_config.tf_random_seed = None
+run_config.tf_random_seed = 11876 # None
 
 # Parameters for spectral_norm:
 # ==============================================================================
