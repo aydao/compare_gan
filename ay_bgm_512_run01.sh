@@ -7,6 +7,6 @@ export NUM_CLASSES=1000
 export TPU_SPLIT_COMPILE_AND_EXECUTE=1
 export TF_TPU_WATCHDOG_TIMEOUT=1800
 while true; do
-  python3 wrapper.py compare_gan/main.py --gin_config ./example_config/ay_bgm_danbooru512_run01.gin --use_tpu --tfds_data_dir 'gs://ay1-euw4a/datasets/' "$@"
+  python3 wrapper.py compare_gan/main.py --gin_config ./example_configs/ay_bgm_danbooru512_run01.gin --use_tpu --tfds_data_dir 'gs://ay1-euw4a/datasets/' "$@"
   sleep 30
 done
