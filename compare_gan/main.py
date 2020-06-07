@@ -43,7 +43,7 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("model_dir", None, "Where to store files.")
+#flags.DEFINE_string("model_dir", None, "Where to store files.")
 flags.DEFINE_string(
     "schedule", "train",
     "Schedule to run. Options: train, continuous_eval.")
@@ -90,14 +90,15 @@ def _get_run_config(tf_random_seed,#=None,
                     save_checkpoints_steps,#=250,
                     keep_checkpoint_every_n_hours,#=0.5,
                     keep_checkpoint_max,#=10,
-                    experimental_host_call_every_n_steps):#=50):
+                    experimental_host_call_every_n_steps,#=50):
+                    model_dir):
   """Return `RunConfig` for TPUs."""
   tpu_config = tf.contrib.tpu.TPUConfig(
       num_shards=1 if single_core else None,  # None = all cores.
       iterations_per_loop=iterations_per_loop,
       experimental_host_call_every_n_steps=experimental_host_call_every_n_steps)
   return tf.contrib.tpu.RunConfig(
-      model_dir=FLAGS.model_dir,
+      model_dir=model_dir,
       tf_random_seed=tf_random_seed,
       save_checkpoints_steps=save_checkpoints_steps,
       keep_checkpoint_max=keep_checkpoint_max,
@@ -113,10 +114,8 @@ def _get_task_manager():
       model_dir=FLAGS.model_dir, score_file=score_file)
 
 
-@gin.configurable("begin_run")
-def _begin_run(model_dir):
+def _begin_run():
   
-  FLAGS.model_dir = model_dir
   if FLAGS.use_tpu is None:
     FLAGS.use_tpu = bool(os.environ.get("TPU_NAME", ""))
     if FLAGS.use_tpu:
@@ -139,7 +138,7 @@ def main(unused_argv):
   logging.info("Gin config: %s\nGin bindings: %s",
                FLAGS.gin_config, FLAGS.gin_bindings)
   gin.parse_config_files_and_bindings(FLAGS.gin_config, FLAGS.gin_bindings)
-  _begin_run(unused_argv)
+  _begin_run()
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("model_dir")
