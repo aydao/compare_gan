@@ -96,6 +96,7 @@ def _get_run_config(tf_random_seed,#=None,
       num_shards=1 if single_core else None,  # None = all cores.
       iterations_per_loop=iterations_per_loop,
       experimental_host_call_every_n_steps=experimental_host_call_every_n_steps)
+  print(tf_random_seed,flush=True)
   return tf.contrib.tpu.RunConfig(
       model_dir=model_dir,
       tf_random_seed=int(tf_random_seed),
