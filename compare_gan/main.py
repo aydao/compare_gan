@@ -116,6 +116,7 @@ def _get_task_manager():
 @gin.configurable("begin_run")
 def _begin_run(model_dir):
   
+  FLAGS.model_dir = model_dir
   if FLAGS.use_tpu is None:
     FLAGS.use_tpu = bool(os.environ.get("TPU_NAME", ""))
     if FLAGS.use_tpu:
