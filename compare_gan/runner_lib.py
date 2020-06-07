@@ -70,10 +70,10 @@ def _parse_gin_config(config_path):
 
 
 @gin.configurable("options")
-def get_options_dict(batch_size=gin.REQUIRED,
-                     gan_class=gin.REQUIRED,
-                     architecture=gin.REQUIRED,
-                     training_steps=gin.REQUIRED,
+def get_options_dict(batch_size,#=gin.REQUIRED,
+                     gan_class,#=gin.REQUIRED,
+                     architecture,#=gin.REQUIRED,
+                     training_steps,#=gin.REQUIRED,
                      datasets,#=os.environ['DATASETS'] if 'DATASETS' in os.environ else None,
                      labels,#=os.environ['LABELS'] if 'LABELS' in os.environ else None,
                      random_labels,#=True if 'RANDOM_LABELS' in os.environ else False,
