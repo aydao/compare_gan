@@ -98,7 +98,7 @@ def _get_run_config(tf_random_seed,#=None,
       experimental_host_call_every_n_steps=experimental_host_call_every_n_steps)
   return tf.contrib.tpu.RunConfig(
       model_dir=model_dir,
-      tf_random_seed=tf_random_seed,
+      tf_random_seed=int(tf_random_seed),
       save_checkpoints_steps=save_checkpoints_steps,
       keep_checkpoint_max=keep_checkpoint_max,
       keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
