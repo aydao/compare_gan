@@ -2,7 +2,7 @@
 set -ex
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/ayy/lib}"
 export TPU_HOST=${TPU_HOST:-10.255.128.3}
-export TPU_NAME="${TPU_NAME:-tpu-v3-256-euw4a-1}"
+export TPU_NAME="${TPU_NAME:-tpu-v3-512-euw4a-11}"
 export NUM_CLASSES=1000
 export TPU_SPLIT_COMPILE_AND_EXECUTE=1
 export TF_TPU_WATCHDOG_TIMEOUT=1800
