@@ -43,7 +43,6 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 
-#flags.DEFINE_string("model_dir", None, "Where to store files.")
 flags.DEFINE_string(
     "schedule", "train",
     "Schedule to run. Options: train, continuous_eval.")
@@ -109,7 +108,7 @@ def _get_run_config(tf_random_seed,#=None,
 
 def _get_task_manager(model_dir):
   """Returns a TaskManager for this experiment."""
-  score_file = os.path.join(FLAGS.model_dir, FLAGS.score_filename)
+  score_file = os.path.join(model_dir, FLAGS.score_filename)
   return runner_lib.TaskManagerWithCsvResults(
       model_dir=model_dir, score_file=score_file)
 
