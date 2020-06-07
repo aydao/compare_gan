@@ -90,8 +90,8 @@ def _get_run_config(tf_random_seed,#=None,
                     save_checkpoints_steps,#=250,
                     keep_checkpoint_every_n_hours,#=0.5,
                     keep_checkpoint_max,#=10,
-                    experimental_host_call_every_n_steps,#=50):
-                    model_dir):
+                    experimental_host_call_every_n_steps,
+                    model_dir):#=50):
   """Return `RunConfig` for TPUs."""
   tpu_config = tf.contrib.tpu.TPUConfig(
       num_shards=1 if single_core else None,  # None = all cores.
@@ -107,21 +107,22 @@ def _get_run_config(tf_random_seed,#=None,
       tpu_config=tpu_config)
 
 
-def _get_task_manager():
+def _get_task_manager(model_dir):
   """Returns a TaskManager for this experiment."""
   score_file = os.path.join(FLAGS.model_dir, FLAGS.score_filename)
   return runner_lib.TaskManagerWithCsvResults(
-      model_dir=FLAGS.model_dir, score_file=score_file)
+      model_dir=model_dir, score_file=score_file)
 
 
-def _begin_run():
+@gin.configurable("begin_run")
+def _begin_run(model_dir):
   
   if FLAGS.use_tpu is None:
     FLAGS.use_tpu = bool(os.environ.get("TPU_NAME", ""))
     if FLAGS.use_tpu:
       logging.info("Found TPU %s.", os.environ["TPU_NAME"])
-  run_config = _get_run_config()
-  task_manager = _get_task_manager()
+  run_config = _get_run_config(model_dir)
+  task_manager = _get_task_manager(model_dir)
   options = runner_lib.get_options_dict()
   runner_lib.run_with_schedule(
       schedule=FLAGS.schedule,
