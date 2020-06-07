@@ -113,7 +113,9 @@ def _get_task_manager():
       model_dir=FLAGS.model_dir, score_file=score_file)
 
 
-def _begin_run():
+@gin.configurable("begin_run")
+def _begin_run(model_dir):
+  
   if FLAGS.use_tpu is None:
     FLAGS.use_tpu = bool(os.environ.get("TPU_NAME", ""))
     if FLAGS.use_tpu:
@@ -136,7 +138,7 @@ def main(unused_argv):
   logging.info("Gin config: %s\nGin bindings: %s",
                FLAGS.gin_config, FLAGS.gin_bindings)
   gin.parse_config_files_and_bindings(FLAGS.gin_config, FLAGS.gin_bindings)
-  _begin_run()
+  _begin_run(unused_argv)
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("model_dir")
