@@ -141,5 +141,4 @@ def main(unused_argv):
   _begin_run()
 
 if __name__ == "__main__":
-  flags.mark_flag_as_required("model_dir")
   app.run(main)
