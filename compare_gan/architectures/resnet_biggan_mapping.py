@@ -280,20 +280,20 @@ class Generator(abstract_arch.AbstractGenerator):
     dlatent_size = z_dim # 512
     fmaps = dlatent_size # dlatent_size if layer_idx == mapping_layers - 1 else mapping_fmaps
     # x = apply_bias_act(dense_layer(x, fmaps=fmaps, lrmul=mapping_lrmul), act=act, lrmul=mapping_lrmul)
-    mapping_lrmul = 0.01
+    mapping_lrmul = 1.0
     fan_in = z_dim * z_dim
     gain = 1
     he_std = gain / np.sqrt(fan_in) # He init
     init_std = 1.0 / mapping_lrmul
     runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
-    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="g_fc0", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc1", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc2", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc3", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc4", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc5", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="g_fc6", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
-    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="g_fc7", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="w_fc0", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc1", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc2", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc3", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc4", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc5", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc6", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="w_fc7", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
 
     z = x # z is basically 'w' from StyleGAN, the dlatent
 
@@ -303,6 +303,7 @@ class Generator(abstract_arch.AbstractGenerator):
     y_per_block = num_blocks * [y]
     
     # Broadcast.
+    assert not self._hierarchical_z # do not use hierarchical_z for this experiment
     if self._hierarchical_z:
       z_per_block = tf.split(z, num_blocks + 1, axis=1)
       z0, z_per_block = z_per_block[0], z_per_block[1:]
@@ -353,9 +354,18 @@ class Generator(abstract_arch.AbstractGenerator):
           in_channels=in_channels[block_idx],
           out_channels=out_channels[block_idx],
           scale="up")
+      mapping_lrmul = 1.0
+      fan_in = z_dim * z_dim
+      gain = 1
+      he_std = gain / np.sqrt(fan_in) # He init
+      init_std = 1.0 / mapping_lrmul
+      runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
+      bias_at_one = 1.0 # for affine transformation
+      aff_w = lrelu(linear(z_per_block[block_idx], z_dim, lrmul=runtime_coef, scope="a_"+str(block_idx), stddev=init_std, bias_start=bias_at_one, use_sn=self._spectral_norm, use_bias=True))
       net = block(
           net,
-          z=z_per_block[block_idx],
+          # z=z_per_block[block_idx],
+          z=aff_w,
           y=y_per_block[block_idx],
           is_training=is_training)
       res = net.shape[1].value

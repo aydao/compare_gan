@@ -11,7 +11,7 @@ AdamOptimizer.use_locking = False
 
 # Parameters for begin_run:
 # ==============================================================================
-begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-512-run1/'
+begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-128-run1/'
 
 # Parameters for resnet_biggan_mapping.BigGanResNetBlock:
 # ==============================================================================
@@ -34,12 +34,12 @@ D.spectral_norm = True
 
 # Parameters for dataset:
 # ==============================================================================
-dataset.name = 'danbooru_512'
-dataset.seed = 1173
+dataset.name = 'danbooru_128'
+dataset.seed = 67289
 
 # Parameters for resnet_biggan_mapping.Discriminator:
 # ==============================================================================
-resnet_biggan_mapping.Discriminator.blocks_with_attention = 'B3'
+resnet_biggan_mapping.Discriminator.blocks_with_attention = '64'
 resnet_biggan_mapping.Discriminator.ch = 128
 resnet_biggan_mapping.Discriminator.channel_multipliers = None
 resnet_biggan_mapping.Discriminator.project_y = True
@@ -51,14 +51,14 @@ G.spectral_norm = True
 
 # Parameters for resnet_biggan_mapping.Generator:
 # ==============================================================================
-resnet_biggan_mapping.Generator.blocks_with_attention = 'B4'
+resnet_biggan_mapping.Generator.blocks_with_attention = '64'
 resnet_biggan_mapping.Generator.ch = 96
 resnet_biggan_mapping.Generator.channel_multipliers = None
 resnet_biggan_mapping.Generator.embed_bias = False
 resnet_biggan_mapping.Generator.embed_y = True
 resnet_biggan_mapping.Generator.embed_y_dim = 128
 resnet_biggan_mapping.Generator.embed_z = False
-resnet_biggan_mapping.Generator.hierarchical_z = True
+resnet_biggan_mapping.Generator.hierarchical_z = False # True
 resnet_biggan_mapping.Generator.plain_tanh = False
 
 # Parameters for hinge:
@@ -98,7 +98,7 @@ normal.seed = None
 # Parameters for options:
 # ==============================================================================
 options.architecture = 'resnet_biggan_mapping_arch'
-options.batch_size = 2048
+options.batch_size = 4096
 options.d_flood = 0.2
 options.datasets = 'gs://ay1-euw4a/datasets/danbooru2019-s/danbooru2019-s-0*'
 options.description = 'BigGAN+Mapping'
@@ -115,7 +115,7 @@ options.num_classes = 1000
 options.random_labels = True
 options.training_steps = 2500000
 options.transpose_input = False
-options.z_dim = 160
+options.z_dim = 512
 
 # Parameters for penalty:
 # ==============================================================================
