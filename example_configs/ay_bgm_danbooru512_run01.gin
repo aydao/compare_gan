@@ -1,9 +1,5 @@
 # Parameters for AdamOptimizer:
 # ==============================================================================
-tf.train.AdamOptimizer.beta1 = 0.0
-tf.train.AdamOptimizer.beta2 = 0.999
-tf.train.AdamOptimizer.epsilon = 1e-08
-tf.train.AdamOptimizer.use_locking = False
 AdamOptimizer.beta1 = 0.0
 AdamOptimizer.beta2 = 0.999
 AdamOptimizer.epsilon = 1e-08
@@ -13,7 +9,11 @@ AdamOptimizer.use_locking = False
 # ==============================================================================
 # None.
 
-# Parameters for BigGanResNetBlock:
+# Parameters for begin_run:
+# ==============================================================================
+begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-512-run1/'
+
+# Parameters for resnet_biggan_mapping.BigGanResNetBlock:
 # ==============================================================================
 resnet_biggan_mapping.BigGanResNetBlock.add_shortcut = True
 
@@ -34,7 +34,7 @@ D.spectral_norm = True
 
 # Parameters for dataset:
 # ==============================================================================
-dataset.name = "danbooru_512"
+dataset.name = 'danbooru_512'
 dataset.seed = 1173
 
 # Parameters for resnet_biggan_mapping.Discriminator:
@@ -101,8 +101,7 @@ options.architecture = 'resnet_biggan_mapping_arch'
 options.batch_size = 2048
 options.d_flood = 0.2
 options.datasets = 'gs://ay1-euw4a/datasets/danbooru2019-s/danbooru2019-s-0*'
-options.description = \
-    'BigGAN+Mapping'
+options.description = 'BigGAN+Mapping'
 options.disc_iters = 2
 options.discriminator_normalization = None
 options.g_flood = 0.05
@@ -122,32 +121,44 @@ options.z_dim = 160
 # ==============================================================================
 penalty.fn = @no_penalty
 
+# Parameters for replace_labels:
+# ==============================================================================
+replace_labels.file_pattern = None
+
 # Parameters for run_config:
 # ==============================================================================
 run_config.experimental_host_call_every_n_steps = 50
 run_config.iterations_per_loop = 250
 run_config.keep_checkpoint_every_n_hours = 0.5
 run_config.keep_checkpoint_max = 10
-run_config.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-512-run1/'
 run_config.save_checkpoints_steps = 250
 run_config.single_core = False
-run_config.tf_random_seed = 11876
+run_config.tf_random_seed = None
 
 # Parameters for spectral_norm:
 # ==============================================================================
-spectral_norm.singular_value = "auto"
 spectral_norm.epsilon = 1e-12
+spectral_norm.singular_value = 'auto'
 
 # Parameters for standardize_batch:
 # ==============================================================================
 standardize_batch.decay = 0.9
 standardize_batch.epsilon = 1e-05
+standardize_batch.use_cross_replica_mean = True
 standardize_batch.use_moving_averages = False
-standardize_batch.use_cross_replica_mean = True # NOTE: None is _True_ for TPUs 
+
+# Parameters for TpuSummaries:
+# ==============================================================================
+TpuSummaries.save_image_steps = 50
+TpuSummaries.save_summary_steps = 1
+
+# Parameters for train_imagenet_transform:
+# ==============================================================================
+train_imagenet_transform.crop_method = 'random'
 
 # Parameters for weights:
 # ==============================================================================
-weights.initializer = "orthogonal"
+weights.initializer = 'orthogonal'
 
 # Parameters for z:
 # ==============================================================================
@@ -155,5 +166,3 @@ z.distribution_fn = @tf.random.normal
 z.maxval = 1.0
 z.minval = -1.0
 z.stddev = 1.0
-
-begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-512-run1/'
