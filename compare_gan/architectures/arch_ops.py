@@ -44,7 +44,9 @@ from tensorflow.python.training import moving_averages  # pylint: disable=g-dire
 
 
 @gin.configurable("weights")
-def weight_initializer(initializer=consts.NORMAL_INIT, stddev=0.02):
+def weight_initializer(
+  initializer=consts.NORMAL_INIT,
+  stddev=0.02):
   """Returns the initializer for the given name.
 
   Args:
@@ -326,7 +328,10 @@ def no_batch_norm(inputs):
 
 @gin.configurable(
     blacklist=["inputs", "is_training", "center", "scale", "name"])
-def batch_norm(inputs, is_training, center=True, scale=True, name="batch_norm"):
+def batch_norm(inputs, is_training,
+  center=True,
+  scale=True,
+  name="batch_norm"):
   """Performs the vanilla batch normalization with trainable scaling and offset.
 
   Args:
@@ -369,8 +374,10 @@ def batch_norm(inputs, is_training, center=True, scale=True, name="batch_norm"):
 
 @gin.configurable(whitelist=["num_hidden"])
 def self_modulated_batch_norm(inputs, z, is_training, use_sn,
-                              center=True, scale=True,
-                              name="batch_norm", num_hidden=32):
+                              center=True,
+                              scale=True,
+                              name="batch_norm",
+                              num_hidden=32):
   """Performs a self-modulated batch normalization.
 
   Details can be found in "On Self Modulation for Generative Adversarial
@@ -421,8 +428,11 @@ def self_modulated_batch_norm(inputs, z, is_training, use_sn,
 
 
 @gin.configurable(whitelist=["use_bias"])
-def conditional_batch_norm(inputs, y, is_training, use_sn, center=True,
-                           scale=True, name="batch_norm", use_bias=False):
+def conditional_batch_norm(inputs, y, is_training, use_sn,
+                           center=True,
+                           scale=True,
+                           name="batch_norm",
+                           use_bias=False):
   """Conditional batch normalization."""
   if y is None:
     raise ValueError("You must provide y for conditional batch normalization.")
@@ -451,7 +461,8 @@ def layer_norm(input_, is_training, scope):
 
 
 @gin.configurable(blacklist=["inputs"])
-def spectral_norm(inputs, epsilon=1e-12, singular_value="left"):
+def spectral_norm(inputs, epsilon=1e-12,
+                  singular_value="left"):
   """Performs Spectral Normalization on a weight tensor.
 
   Details of why this is helpful for GAN's can be found in "Spectral
@@ -556,8 +567,13 @@ def graph_spectral_norm(w):
     tpu_summaries.TpuSummaries.inst.scalar(name, norm)
   return w
 
-def linear(inputs, output_size, scope=None, stddev=0.02, bias_start=0.0,
-           use_sn=False, use_bias=True, lrmul=1):
+def linear(inputs, output_size,
+           scope=None,
+           stddev=0.02,
+           bias_start=0.0,
+           use_sn=False,
+           use_bias=True,
+           lrmul=1):
   """Linear layer without the non-linear activation applied."""
   runtime_coef = lrmul # naming conventions adopted from StyleGAN
   shape = inputs.get_shape().as_list()
@@ -579,8 +595,11 @@ def linear(inputs, output_size, scope=None, stddev=0.02, bias_start=0.0,
     return outputs
 
 
-def conv2d(inputs, output_dim, k_h, k_w, d_h, d_w, stddev=0.02, name="conv2d",
-           use_sn=False, use_bias=True):
+def conv2d(inputs, output_dim, k_h, k_w, d_h, d_w,
+           stddev=0.02,
+           name="conv2d",
+           use_sn=False,
+           use_bias=True):
   """Performs 2D convolution of the input."""
   with tf.variable_scope(name):
     w = tf.get_variable(
@@ -601,7 +620,9 @@ conv1x1 = functools.partial(conv2d, k_h=1, k_w=1, d_h=1, d_w=1)
 
 
 def deconv2d(inputs, output_shape, k_h, k_w, d_h, d_w,
-             stddev=0.02, name="deconv2d", use_sn=False):
+             stddev=0.02,
+             name="deconv2d",
+             use_sn=False):
   """Performs transposed 2D convolution of the input."""
   with tf.variable_scope(name):
     w = tf.get_variable(
@@ -623,7 +644,8 @@ def lrelu(inputs, leak=0.2, name="lrelu"):
 
 
 def weight_norm_linear(input_, output_size,
-                       init=False, init_scale=1.0,
+                       init=False,
+                       init_scale=1.0,
                        name="wn_linear",
                        initializer=tf.truncated_normal_initializer,
                        stddev=0.02):
@@ -694,7 +716,8 @@ def weight_norm_conv2d(input_, output_dim,
 
 def weight_norm_deconv2d(x, output_dim,
                          k_h, k_w, d_h, d_w,
-                         init=False, init_scale=1.0,
+                         init=False,
+                         init_scale=1.0,
                          stddev=0.02,
                          name="wn_deconv2d",
                          initializer=tf.truncated_normal_initializer):

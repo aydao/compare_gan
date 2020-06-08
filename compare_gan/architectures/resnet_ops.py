@@ -76,9 +76,9 @@ class ResNetBlock(object):
                out_channels,
                scale,
                is_gen_block,
-               layer_norm=False,
-               spectral_norm=False,
-               batch_norm=None):
+               layer_norm,#=False,
+               spectral_norm,#=False,
+               batch_norm):#=None):
     """Constructs a new ResNet block.
 
     Args:

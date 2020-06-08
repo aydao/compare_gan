@@ -98,7 +98,7 @@ class BigGanResNetBlock(resnet_ops.ResNetBlock):
   """
 
   def __init__(self,
-               add_shortcut=True,
+               add_shortcut,#=True,
                **kwargs):
     """Constructs a new ResNet block for BigGAN.
 
@@ -169,15 +169,15 @@ class Generator(abstract_arch.AbstractGenerator):
   """ResNet-based generator supporting resolutions 32, 64, 128, 256, 512, 1024."""
 
   def __init__(self,
-               ch=96,
-               blocks_with_attention="64",
-               hierarchical_z=True,
-               embed_z=False,
-               embed_y=True,
-               embed_y_dim=128,
-               embed_bias=False,
-               channel_multipliers=None,
-               plain_tanh=False,
+               ch,#=96,
+               blocks_with_attention,#="64",
+               hierarchical_z,#=True,
+               embed_z,#=False,
+               embed_y,#=True,
+               embed_y_dim,#=128,
+               embed_bias,#=False,
+               channel_multipliers,#=None,
+               plain_tanh,#=False,
                **kwargs):
     """Constructor for BigGAN generator.
 
@@ -217,6 +217,7 @@ class Generator(abstract_arch.AbstractGenerator):
         out_channels=out_channels,
         scale=scale,
         is_gen_block=True,
+        layer_norm=False,
         spectral_norm=self._spectral_norm,
         batch_norm=self.batch_norm)
 
@@ -399,10 +400,10 @@ class Discriminator(abstract_arch.AbstractDiscriminator):
   """ResNet-based discriminator supporting resolutions 32, 64, 128, 256, 512, 1024."""
 
   def __init__(self,
-               ch=96,
-               blocks_with_attention="64",
-               project_y=True,
-               channel_multipliers=None,
+               ch,#=96,
+               blocks_with_attention,#="64",
+               project_y,#=True,
+               channel_multipliers,#=None,
                **kwargs):
     """Constructor for BigGAN discriminator.
 

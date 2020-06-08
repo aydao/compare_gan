@@ -11,7 +11,7 @@ AdamOptimizer.use_locking = False
 
 # Parameters for begin_run:
 # ==============================================================================
-begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-128-run1/'
+begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-128-run2/'
 
 # Parameters for resnet_biggan_mapping.BigGanResNetBlock:
 # ==============================================================================
@@ -39,7 +39,7 @@ dataset.seed = 67289
 
 # Parameters for resnet_biggan_mapping.Discriminator:
 # ==============================================================================
-resnet_biggan_mapping.Discriminator.blocks_with_attention = '64'
+resnet_biggan_mapping.Discriminator.blocks_with_attention = 'B1'
 resnet_biggan_mapping.Discriminator.ch = 128
 resnet_biggan_mapping.Discriminator.channel_multipliers = None
 resnet_biggan_mapping.Discriminator.project_y = True
@@ -51,7 +51,7 @@ G.spectral_norm = True
 
 # Parameters for resnet_biggan_mapping.Generator:
 # ==============================================================================
-resnet_biggan_mapping.Generator.blocks_with_attention = '64'
+resnet_biggan_mapping.Generator.blocks_with_attention = 'B4'
 resnet_biggan_mapping.Generator.ch = 96
 resnet_biggan_mapping.Generator.channel_multipliers = None
 resnet_biggan_mapping.Generator.embed_bias = False
