@@ -852,8 +852,10 @@ def mixture_latent(shape, # [batch_size, z_dim]
   with ops.name_scope(name, "mixture_latent",
                       [shape, mean, stddev, clip_min, clip_max]) as name:
     
-    batch_size = shape[0]
-    half_z_dim = shape[1]//2
+    batch_size = shape[0] if len(shape) != 1 else 1
+    z_dim = shape[1] if len(shape) != 1 else shape[0]
+    half_z_dim = z_dim//2
+
     half_shape = [batch_size, half_z_dim]
     ones = tf.ones([batch_size, 2])
     discrete = tf.cast(tf.random.categorical(tf.math.log(ones), half_z_dim), tf.float32)
