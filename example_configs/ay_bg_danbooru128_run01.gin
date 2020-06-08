@@ -11,7 +11,7 @@ AdamOptimizer.use_locking = False
 
 # Parameters for begin_run:
 # ==============================================================================
-begin_run.model_dir = 'gs://ay1-euw4a/aybg/bgm-danbooru2019-s-128-run2/'
+begin_run.model_dir = 'gs://ay1-euw4a/aybg/bg-danbooru2019-s-128-run1/'
 
 # Parameters for resnet_biggan.BigGanResNetBlock:
 # ==============================================================================
