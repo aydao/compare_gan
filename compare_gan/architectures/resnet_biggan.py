@@ -212,6 +212,7 @@ class Generator(abstract_arch.AbstractGenerator):
         out_channels=out_channels,
         scale=scale,
         is_gen_block=True,
+        layer_norm=False,
         spectral_norm=self._spectral_norm,
         batch_norm=self.batch_norm)
 

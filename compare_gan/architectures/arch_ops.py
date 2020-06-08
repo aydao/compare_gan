@@ -855,10 +855,13 @@ def mixture_latent(shape, # [batch_size, z_dim]
     batch_size = shape[0] if len(shape) != 1 else 1
     z_dim = shape[1] if len(shape) != 1 else shape[0]
     half_z_dim = z_dim//2
-
-    half_shape = [batch_size, half_z_dim]
+    half_shape = [batch_size, half_z_dim] if len(shape) != 1 else [half_z_dim]
     ones = tf.ones([batch_size, 2])
     discrete = tf.cast(tf.random.categorical(tf.math.log(ones), half_z_dim), tf.float32)
+    if batch_size == 1:
+      discrete = tf.reshape(discrete, [half_z_dim])
     continuous = censored_normal(half_shape, mean, stddev, clip_min, clip_max, dtype, seed, name)
-    value = tf.concat([discrete, continuous], axis=1)
+    axis = 1 if len(shape) != 1 else 0
+    value = tf.concat([discrete, continuous], axis=axis)
+    assert shape == value.shape
     return value
