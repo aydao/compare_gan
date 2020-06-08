@@ -825,7 +825,8 @@ def censored_normal(shape,
                   seed=None,
                   name=None):
 
-  with ops.name_scope(name, "censored_normal", [shape, mean, stddev]) as name:
+  with ops.name_scope(name, "censored_normal",
+                      [shape, mean, stddev, clip_min, clip_max]) as name:
     shape_tensor = tensor_util.shape_tensor(shape)
     mean_tensor = ops.convert_to_tensor(mean, dtype=dtype, name="mean")
     stddev_tensor = ops.convert_to_tensor(stddev, dtype=dtype, name="stddev")
@@ -836,4 +837,26 @@ def censored_normal(shape,
     value = math_ops.add(mul, mean_tensor, name=name)
     value = tf.clip_by_value(value, clip_min, clip_max)
     tensor_util.maybe_set_static_shape(value, shape)
+    return value
+
+@gin.configurable("mixture_latent")
+def censored_normal(shape, # [batch_size, z_dim]
+                  mean=0.0,
+                  stddev=1.0,
+                  clip_min=0.0,
+                  clip_max=1.0,
+                  dtype=dtypes.float32,
+                  seed=None,
+                  name=None):
+
+  with ops.name_scope(name, "mixture_latent",
+                      [shape, mean, stddev, clip_min, clip_max]) as name:
+    
+    batch_size = shape[0]
+    half_z_dim = shape[1]//2
+    half_shape = [batch_size, half_z_dim]
+    ones = tf.ones([batch_size, 2])
+    discrete = tf.cast(tf.random.categorical(tf.math.log(ones), half_z_dim), tf.float32)
+    continuous = censored_normal(half_shape, mean, stddev, clip_min, clip_max, dtype, seed, name)
+    value = tf.concat([discrete, continuous], axis=1)
     return value
