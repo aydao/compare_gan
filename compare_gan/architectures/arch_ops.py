@@ -815,6 +815,7 @@ def non_local_block(x, name, use_sn):
                      use_bias=False)
     return x + sigma * attn_g
 
+@gin.configurable("censored_normal")
 def censored_normal(shape,
                   mean=0.0,
                   stddev=1.0,
