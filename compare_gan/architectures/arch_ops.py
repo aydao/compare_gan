@@ -840,7 +840,7 @@ def censored_normal(shape,
     return value
 
 @gin.configurable("mixture_latent")
-def censored_normal(shape, # [batch_size, z_dim]
+def mixture_latent(shape, # [batch_size, z_dim]
                   mean=0.0,
                   stddev=1.0,
                   clip_min=0.0,
