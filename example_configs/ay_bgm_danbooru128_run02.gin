@@ -162,7 +162,7 @@ weights.initializer = 'orthogonal'
 
 # Parameters for z:
 # ==============================================================================
-z.distribution_fn = @tf.random.normal
+z.distribution_fn = @censored_normal
 z.maxval = 1.0
 z.minval = -1.0
 z.stddev = 1.0
