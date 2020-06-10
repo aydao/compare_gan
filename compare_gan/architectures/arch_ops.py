@@ -42,6 +42,16 @@ import tensorflow as tf
 from tensorflow.contrib.tpu.python.tpu import tpu_function
 from tensorflow.python.training import moving_averages  # pylint: disable=g-direct-tensorflow-import
 
+from tensorflow.python.eager import context
+from tensorflow.python.framework import dtypes
+from tensorflow.python.framework import ops
+from tensorflow.python.framework import random_seed
+from tensorflow.python.framework import tensor_util
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import gen_random_ops
+from tensorflow.python.ops import math_ops
+
 
 @gin.configurable("weights")
 def weight_initializer(initializer=consts.NORMAL_INIT, stddev=0.02):
@@ -557,14 +567,15 @@ def graph_spectral_norm(w):
   return w
 
 def linear(inputs, output_size, scope=None, stddev=0.02, bias_start=0.0,
-           use_sn=False, use_bias=True):
+           use_sn=False, use_bias=True, lrmul=1):
   """Linear layer without the non-linear activation applied."""
+  runtime_coef = lrmul # naming conventions adopted from StyleGAN
   shape = inputs.get_shape().as_list()
   with tf.variable_scope(scope or "linear"):
     kernel = tf.get_variable(
         "kernel",
         [shape[1], output_size],
-        initializer=weight_initializer(stddev=stddev))
+        initializer=weight_initializer(stddev=stddev)) * runtime_coef
     kernel = graph_spectral_norm(kernel)
     if use_sn:
       kernel, norm = spectral_norm(kernel)
@@ -780,3 +791,63 @@ def non_local_block(x, name, use_sn):
     attn_g = conv1x1(attn_g, num_channels, name="conv2d_attn_g", use_sn=use_sn,
                      use_bias=False)
     return x + sigma * attn_g
+
+
+@gin.configurable("censored_normal")
+def censored_normal(shape,
+                  mean=0.0,
+                  stddev=1.0,
+                  clip_min=0.0,
+                  clip_max=1.0,
+                  dtype=dtypes.float32,
+                  seed=None,
+                  name=None):
+
+  with ops.name_scope(name, "censored_normal",
+                      [shape, mean, stddev, clip_min, clip_max]) as name:
+    shape_tensor = tensor_util.shape_tensor(shape)
+    mean_tensor = ops.convert_to_tensor(mean, dtype=dtype, name="mean")
+    stddev_tensor = ops.convert_to_tensor(stddev, dtype=dtype, name="stddev")
+    seed1, seed2 = random_seed.get_seed(seed)
+    rnd = gen_random_ops.random_standard_normal(
+        shape_tensor, dtype, seed=seed1, seed2=seed2)
+    mul = rnd * stddev_tensor
+    value = math_ops.add(mul, mean_tensor, name=name)
+    value = tf.clip_by_value(value, clip_min, clip_max)
+    tensor_util.maybe_set_static_shape(value, shape)
+    return value
+
+@gin.configurable("mixture_latent")
+def mixture_latent(shape, # can be [batch_size, z_dim] or [z_dim]
+                  mean=0.0,
+                  stddev=1.0,
+                  clip_min=0.0,
+                  clip_max=1.0,
+                  dtype=dtypes.float32,
+                  seed=None,
+                  name=None,
+                  interval=20):
+
+  with ops.name_scope(name, "mixture_latent",
+                      [shape, mean, stddev, clip_min, clip_max]) as name:
+    
+    batch_size = shape[0] if len(shape) != 1 else 1
+    z_dim = shape[1] if len(shape) != 1 else shape[0]
+    assert z_dim % interval == 0
+    
+    chunk_shape = interval
+    chunk_count = z_dim // chunk_shape
+    value = None
+    for chunk_idx in range(chunk_count):
+      half_z_dim = chunk_shape // 2
+      half_shape = [batch_size, half_z_dim] if len(shape) != 1 else [half_z_dim]
+      ones = tf.ones([batch_size, 2])
+      discrete = tf.cast(tf.random.categorical(tf.math.log(ones), half_z_dim), tf.float32)
+      if batch_size == 1:
+        discrete = tf.reshape(discrete, [half_z_dim])
+      continuous = censored_normal(half_shape, mean, stddev, clip_min, clip_max, dtype, seed, name+'_chunk'+str(chunk_idx))
+      axis = 1 if len(shape) != 1 else 0
+      joined = tf.concat([discrete, continuous], axis=axis)
+      value = joined if value == None else tf.concat([value, joined], axis=axis)
+    assert shape == value.shape
+    return value

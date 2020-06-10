@@ -15,6 +15,8 @@
 
 """Re-implementation of BigGAN architecture.
 
+First draft of a "BigStyleGAN" -- Give BigGAN a mapping network
+
 Disclaimer: We note that this is our best-effort re-implementation and stress
 that even minor implementation differences may lead to large differences in
 trained models due to sensitivity of GANs to optimization hyperparameters and
@@ -79,7 +81,10 @@ from absl import logging
 from compare_gan.architectures import abstract_arch
 from compare_gan.architectures import arch_ops as ops
 from compare_gan.architectures import resnet_ops
+from compare_gan.architectures.arch_ops import linear
+from compare_gan.architectures.arch_ops import lrelu
 
+import numpy as np
 import gin
 from six.moves import range
 import tensorflow as tf
@@ -212,7 +217,6 @@ class Generator(abstract_arch.AbstractGenerator):
         out_channels=out_channels,
         scale=scale,
         is_gen_block=True,
-        layer_norm=False,
         spectral_norm=self._spectral_norm,
         batch_norm=self.batch_norm)
 
@@ -250,11 +254,13 @@ class Generator(abstract_arch.AbstractGenerator):
     Returns:
       A tensor of size [batch_size] + self._image_shape with values in [0, 1].
     """
+    z_in = z
+    z = None # clear z for now
     shape_or_none = lambda t: None if t is None else t.shape
-    logging.info("[Generator] inputs are z=%s, y=%s", z.shape, shape_or_none(y))
+    logging.info("[Generator] inputs are z_in=%s, y=%s", z_in.shape, shape_or_none(y))
     # Each block upscales by a factor of 2.
     seed_size = 4
-    z_dim = z.shape[1].value
+    z_dim = z_in.shape[1].value
 
     in_channels, out_channels = self._get_in_out_channels()
     num_blocks = len(in_channels)
@@ -262,10 +268,40 @@ class Generator(abstract_arch.AbstractGenerator):
     if self._embed_z:
       z = ops.linear(z, z_dim, scope="embed_z", use_sn=False,
                      use_bias=self._embed_bias)
+
+    # Begin latents in -> mapping network.
+    x = z_in
+
+    # Normalize latents.
+    #if True: # if self._normalize_latents: ...
+    #  x *= tf.rsqrt(tf.reduce_mean(tf.square(x), axis=1, keepdims=True) + 1e-8)
+      
+    # Mapping layers.
+    dlatent_size = z_dim
+    fmaps = dlatent_size
+    mapping_lrmul = 1.0
+    fan_in = z_dim * fmaps # this would need to be different if the layer sizes below were different
+    gain = 1
+    he_std = gain / np.sqrt(fan_in) # He init
+    init_std = 1.0 / mapping_lrmul
+    runtime_coef = he_std * mapping_lrmul # Naming conventions from StyleGAN
+    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="w_fc0", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc1", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc2", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc3", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc4", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc5", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, fmaps, lrmul=runtime_coef, scope="w_fc6", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    x = lrelu(linear(x, z_dim, lrmul=runtime_coef, scope="w_fc7", stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+
+    z = x # z is basically 'w' from StyleGAN, the dlatent
+
     if self._embed_y:
       y = ops.linear(y, self._embed_y_dim, scope="embed_y", use_sn=False,
                      use_bias=self._embed_bias)
     y_per_block = num_blocks * [y]
+    
+    # Broadcast.
     if self._hierarchical_z:
       z_per_block = tf.split(z, num_blocks + 1, axis=1)
       z0, z_per_block = z_per_block[0], z_per_block[1:]
@@ -274,6 +310,23 @@ class Generator(abstract_arch.AbstractGenerator):
     else:
       z0 = z
       z_per_block = num_blocks * [z]
+
+    # Update moving average of W. 
+    # (todo)
+    #dlatents = x
+    #dlatent_avg_beta = 0.995
+    #dlatent_avg = tf.get_variable('dlatent_avg', shape=[dlatent_size], initializer=tf.initializers.zeros(), trainable=False)
+    #batch_avg = tf.reduce_mean(dlatents[:, 0], axis=0)
+    #update_op = tf.assign(dlatent_avg, tflib.lerp(batch_avg, dlatent_avg, dlatent_avg_beta))
+    #with tf.control_dependencies([update_op]):
+    #    dlatents = tf.identity(dlatents)
+    #z = dlatents
+    
+    # Perform style mixing regularization.
+    # (todo)
+
+    # Apply truncation trick. (Apply StyleGAN-style truncation of W?)
+    # (todo?)
 
     logging.info("[Generator] z0=%s, z_per_block=%s, y_per_block=%s",
                  z0.shape, [str(shape_or_none(t)) for t in z_per_block],
@@ -464,3 +517,4 @@ class Discriminator(abstract_arch.AbstractDiscriminator):
         out_logit += tf.reduce_sum(embedded_y * h, axis=1, keepdims=True)
     out = tf.nn.sigmoid(out_logit)
     return out, out_logit, h
+    

@@ -31,6 +31,7 @@ from compare_gan.architectures import infogan
 from compare_gan.architectures import resnet30
 from compare_gan.architectures import resnet5
 from compare_gan.architectures import resnet_biggan
+from compare_gan.architectures import resnet_biggan_mapping
 from compare_gan.architectures import resnet_biggan_deep
 from compare_gan.architectures import resnet_cifar
 from compare_gan.architectures import resnet_stl
@@ -184,6 +185,7 @@ class ModularGAN(AbstractGAN):
           c.RESNET5_ARCH: resnet5.Generator,
           c.RESNET30_ARCH: resnet30.Generator,
           c.RESNET_BIGGAN_ARCH: resnet_biggan.Generator,
+          c.RESNET_BIGGAN_MAPPING_ARCH: resnet_biggan_mapping.Generator,
           c.RESNET_BIGGAN_DEEP_ARCH: resnet_biggan_deep.Generator,
           c.RESNET_CIFAR_ARCH: resnet_cifar.Generator,
           c.RESNET_STL_ARCH: resnet_stl.Generator,
@@ -208,6 +210,7 @@ class ModularGAN(AbstractGAN):
           c.RESNET5_ARCH: resnet5.Discriminator,
           c.RESNET30_ARCH: resnet30.Discriminator,
           c.RESNET_BIGGAN_ARCH: resnet_biggan.Discriminator,
+          c.RESNET_BIGGAN_MAPPING_ARCH: resnet_biggan_mapping.Discriminator,
           c.RESNET_BIGGAN_DEEP_ARCH: resnet_biggan_deep.Discriminator,
           c.RESNET_CIFAR_ARCH: resnet_cifar.Discriminator,
           c.RESNET_STL_ARCH: resnet_stl.Discriminator,
@@ -806,12 +809,12 @@ class ModularGAN(AbstractGAN):
     self.d_loss += self._lambda * penalty_loss
 
   def flood_loss(self):
-    d_flood = self.options.get("d_flood", 0.0)
-    if d_flood > 0.0:
+    d_flood = self.options.get("d_flood", None)
+    if d_flood is not None:
       logging.info("Using d_flood=%f", d_flood)
       self.d_loss = tf.abs(self.d_loss - d_flood) + d_flood
 
-    g_flood = self.options.get("g_flood", 0.0)
-    if g_flood > 0.0:
+    g_flood = self.options.get("g_flood", None)
+    if g_flood is not None:
       logging.info("Using g_flood=%f", g_flood)
       self.g_loss = tf.abs(self.g_loss - g_flood) + g_flood

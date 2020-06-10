@@ -83,8 +83,8 @@ def get_options_dict(batch_size=gin.REQUIRED,
                      lamba=1,
                      disc_iters=1,
                      z_dim=128,
-                     d_flood=0.0,
-                     g_flood=0.0,
+                     d_flood=None,
+                     g_flood=None,
                      description="Describe your GIN config. (This appears in the tensorboard text tab.)",
                      model_dir=os.environ['MODEL_DIR'] if 'MODEL_DIR' in os.environ else None,
                      image_grid_width=3,
@@ -140,8 +140,6 @@ class TaskManager(object):
 
   def __init__(self, model_dir):
     self._model_dir = model_dir
-    if os.environ["MODEL_DIR"] is None:
-      os.environ["MODEL_DIR"] = model_dir
 
   @property
   def model_dir(self):
