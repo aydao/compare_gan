@@ -80,6 +80,59 @@ def non_saturating(d_real_logits, d_fake_logits, d_real=None, d_fake=None):
 
 
 @gin.configurable(whitelist=[])
+def pixel_cross_entropy(d_real_logits, d_fake_logits, d_real=None, d_fake=None, cutmix_masks=None):
+  """Returns the discriminator and generator loss for sigmoid cross-entropy.
+
+  Args:
+    d_real_logits: logits for real 1 channel HxW image (mask) output, shape [batch_size, H, W, 1].
+    d_fake_logits: logits for fake 1 channel HxW image (mask) output, shape [batch_size, H, W, 1].
+    d_real: ignored.
+    d_fake: ignored.
+
+  Returns:
+    A tuple consisting of the discriminator loss, discriminator's loss on the
+    real samples and fake samples, and the generator's loss.
+  """
+  with tf.name_scope("pixel_cross_entropy"):
+    # incoming mask logit shape should be [batch_size, H, W, 1] 
+    assert len(d_real_logits.shape) == 4 and d_real_logits.shape[3] == 1
+    assert len(d_fake_logits.shape) == 4 and d_fake_logits.shape[3] == 1
+    b, h, w = d_real_logits.shape[0], d_real_logits.shape[1], d_real_logits.shape[2]
+    # flat_shape will be [batch_size * H * W, 1]
+    flat_shape = [b * h * w, 1]
+    d_real_logits_flat = tf.reshape(d_real_logits, flat_shape)
+    d_fake_logits_flat = tf.reshape(d_fake_logits, flat_shape)
+    d_real_log_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+        logits=d_real_logits_flat,
+        labels=tf.ones_like(d_real_logits_flat),
+        name="cross_entropy_d_real"
+    )
+    d_fake_log_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+        logits=d_fake_logits_flat,
+        labels=tf.zeros_like(d_fake_logits_flat),
+        name="cross_entropy_d_fake"
+    )
+    g_log_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+        logits=d_fake_logits_flat,
+        labels=tf.ones_like(d_fake_logits_flat),
+        name="cross_entropy_g"
+    )
+    # reshaped log loss to be [batch_size, H, W, 1] 
+    d_real_log_loss = tf.reshape(d_real_log_loss, d_real_logits.shape)
+    d_fake_log_loss = tf.reshape(d_fake_log_loss, d_fake_logits.shape)
+    g_log_loss      = tf.reshape(g_log_loss,        d_fake_logits.shape)
+    sum_d_real_log_loss = tf.reduce_sum(tf.reduce_sum(d_real_log_loss, axis=2), axis=1)
+    sum_d_fake_log_loss = tf.reduce_sum(tf.reduce_sum(d_fake_log_loss, axis=2), axis=1)
+    sum_g_log_loss      = tf.reduce_sum(tf.reduce_sum(g_log_loss,      axis=2), axis=1)
+    # sum loss reduced shape should be [batch_size, 1] 
+    g_loss      = tf.cast(tf.reduce_mean(sum_g_log_loss),      tf.float32) / tf.cast(h * w, tf.float32)
+    d_loss_real = tf.cast(tf.reduce_mean(sum_d_real_log_loss), tf.float32) / tf.cast(h * w, tf.float32)
+    d_loss_fake = tf.cast(tf.reduce_mean(sum_d_fake_log_loss), tf.float32) / tf.cast(h * w, tf.float32)
+    d_loss = 0.5 * (d_loss_real + d_loss_fake)
+    return d_loss, d_loss_real, d_loss_fake, g_loss
+
+
+@gin.configurable(whitelist=[])
 def wasserstein(d_real_logits, d_fake_logits, d_real=None, d_fake=None):
   """Returns the discriminator and generator loss for Wasserstein loss.
 
@@ -146,6 +199,78 @@ def hinge(d_real_logits, d_fake_logits, d_real=None, d_fake=None):
     d_loss = d_loss_real + d_loss_fake
     g_loss = - tf.reduce_mean(d_fake_logits)
     return d_loss, d_loss_real, d_loss_fake, g_loss
+
+
+@gin.configurable(whitelist=[])
+def pixel_hinge(d_real_logits, d_fake_logits, d_real=None, d_fake=None, cutmix_masks=None):
+  """Returns the discriminator and generator loss for pixel-wise hinge loss.
+
+  Args:
+    d_real_logits: logits for real 1 channel HxW image (mask) output, shape [batch_size, H, W, 1].
+    d_fake_logits: logits for fake 1 channel HxW image (mask) output, shape [batch_size, H, W, 1].
+    d_real: ignored.
+    d_fake: ignored.
+
+  Returns:
+    A tuple consisting of the discriminator loss, discriminator's loss on the
+    real samples and fake samples, and the generator's loss.
+  """
+  with tf.name_scope("pixel_hinge"):
+
+    # incoming mask logit shape should be [batch_size, H, W, 1] 
+    assert len(d_real_logits.shape) == 4 and d_real_logits.shape[3] == 1
+    assert len(d_fake_logits.shape) == 4 and d_fake_logits.shape[3] == 1
+    b, h, w = d_real_logits.shape[0], d_real_logits.shape[1], d_real_logits.shape[2]
+    # flat_shape will be [batch_size * H * W, 1]
+    flat_shape = [b * h * w, 1]
+    d_real_logits_flat = tf.reshape(d_real_logits, flat_shape)
+    d_fake_logits_flat = tf.reshape(d_fake_logits, flat_shape)
+
+    # cutmix mask is 0 for fake, 1 for real, only used in generated images
+    if cutmix_masks is not None:
+      cutmix_masks_flat = tf.reshape(cutmix_masks, flat_shape)
+      # only for the fake logits, we add a penalty (-1.0) when the cutmix mask is real (==1.0)
+      d_fake_logits_flat += cutmix_masks_flat * -1.0
+    d_loss_real_flat = tf.nn.relu(1.0 - d_real_logits_flat)
+    d_loss_fake_flat = tf.nn.relu(1.0 + d_fake_logits_flat)
+    
+    # reshaped raw loss to be [batch_size, H, W, 1] 
+    d_real_raw_loss = tf.reshape(d_loss_real_flat, d_real_logits.shape)
+    d_fake_raw_loss = tf.reshape(d_loss_fake_flat, d_fake_logits.shape)
+    sum_d_real_raw_loss = tf.reduce_sum(tf.reduce_sum(d_real_raw_loss, axis=2), axis=1)
+    sum_d_fake_raw_loss = tf.reduce_sum(tf.reduce_sum(d_fake_raw_loss, axis=2), axis=1)
+    sum_g_logits        = tf.reduce_sum(tf.reduce_sum(d_fake_logits,   axis=2), axis=1)
+    # sum loss reduced shape should be [batch_size, 1] 
+
+    g_loss      =  tf.cast(-tf.reduce_mean(sum_g_logits),        tf.float32) / tf.cast(h * w, tf.float32)
+    d_loss_real =  tf.cast( tf.reduce_mean(sum_d_real_raw_loss), tf.float32) / tf.cast(h * w, tf.float32)
+    d_loss_fake =  tf.cast( tf.reduce_mean(sum_d_fake_raw_loss), tf.float32) / tf.cast(h * w, tf.float32)
+    d_loss = 0.5 * (d_loss_real + d_loss_fake)
+    return d_loss, d_loss_real, d_loss_fake, g_loss
+
+
+@gin.configurable(whitelist=[])
+def pixel_consistency_l2norm(
+    source,
+    target,
+  ):
+  """Returns the discriminator consistency loss for pixel-wise L2 norm difference in cutmix.
+  """
+  with tf.name_scope("pixel_consistency_l2norm"):
+
+    # incoming mask shape should be [batch_size, H, W, 1] 
+    assert len(source.shape) == 4 and source.shape[3] == 1
+    assert len(target.shape) == 4 and target.shape[3] == 1
+    
+    d_consistency_loss = 0.0
+    diff = target - source
+    sqrd = tf.square(diff)
+    sumd = tf.reduce_sum(sqrd, axis=[-3,-2,-1])
+    root = tf.sqrt(sumd + 1e-12)
+    mean = tf.reduce_mean(root)
+    d_consistency_loss = mean
+    
+    return d_consistency_loss
 
 
 @gin.configurable("loss", whitelist=["fn"])

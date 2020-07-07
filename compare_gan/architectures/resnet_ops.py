@@ -29,6 +29,7 @@ from compare_gan.architectures import abstract_arch
 from compare_gan.architectures import arch_ops as ops
 
 from six.moves import range
+import numpy as np
 import tensorflow as tf
 
 
@@ -75,7 +76,7 @@ class ResNetBlock(object):
                in_channels,
                out_channels,
                scale,
-               is_gen_block,
+               is_gen_block, # this is incorrectly named. If true, it only does "scale first then none, or vice versa"
                layer_norm=False,
                spectral_norm=False,
                batch_norm=None):
@@ -180,6 +181,96 @@ class ResNetBlock(object):
       # Combine skip-connection with the convolved part.
       output += shortcut
       return output
+  #----------------------------------------------------------------------------
+  # Modulated convolution layer.
+
+  def _modulated_conv2d_layer(self, x, z, channels_in, channels_out, kernel, scale_up_down_none, demodulate, suffix, gain=1, use_wscale=True, lrmul=1, weight_var='weight', mod_weight_var='mod_weight', mod_bias_var='mod_bias'):
+    assert kernel >= 1 and kernel % 2 == 1
+
+    # Get weight.
+    w = self._get_weight([kernel, kernel, channels_in, channels_out], gain=gain, use_wscale=use_wscale, lrmul=lrmul, weight_var=suffix+'_'+weight_var)
+    ww = w[np.newaxis] # [BkkIO] Introduce minibatch dimension.
+
+    # Modulate.
+    z_dim = z.shape[-1].value
+    style_channels_out = channels_in
+    fan_in = z_dim * style_channels_out # this would need to be different if the layer sizes below were different
+    he_std = gain / np.sqrt(fan_in) # He init
+    init_std = 1.0 / lrmul
+    runtime_coef = he_std * lrmul # Naming conventions from StyleGAN
+    s = ops.lrelu(ops.linear(z, style_channels_out, lrmul=runtime_coef, scope=suffix+'_'+mod_weight_var, stddev=init_std, bias_start=0.0, use_sn=self._spectral_norm, use_bias=True))
+    # s = dense_layer(z, fmaps=channels_in, weight_var=mod_weight_var) # [BI] Transform incoming W (latent) to style.
+    # s = apply_bias_act(s, bias_var=mod_bias_var) + 1 # [BI] Add bias (initially 1).
+    ww *= tf.cast(s[:, np.newaxis, np.newaxis, :, np.newaxis], w.dtype) # [BkkIO] Scale input feature maps.
+
+    # Demodulate.
+    if demodulate:
+      d = tf.rsqrt(tf.reduce_sum(tf.square(ww), axis=[1,2,3]) + 1e-8) # [BO] Scaling factor.
+      ww *= d[:, np.newaxis, np.newaxis, np.newaxis, :] # [BkkIO] Scale output feature maps.
+
+    # Reshape/scale input.
+    #if fused_modconv:
+    #  x = tf.reshape(x, [1, -1, x.shape[2], x.shape[3]]) # Fused => reshape minibatch to convolution groups.
+    #  w = tf.reshape(tf.transpose(ww, [1, 2, 3, 0, 4]), [ww.shape[1], ww.shape[2], ww.shape[3], -1])
+    #else:
+    x *= tf.cast(s[:, np.newaxis, np.newaxis, :], x.dtype) # [BhwI] Not fused => scale input activations.
+
+    # Convolution with optional up/downsampling.
+    x = self._get_conv(x, channels_in, channels_out, scale_up_down_none, suffix, kernel_size=(kernel, kernel), strides=(1, 1))
+    #if up:
+    #  x = upsample_conv_2d(x, tf.cast(w, x.dtype), data_format='NHWC', k=resample_kernel)
+    #elif down:
+    #  x = conv_downsample_2d(x, tf.cast(w, x.dtype), data_format='NHWC', k=resample_kernel)
+    #else:
+    #  x = tf.nn.conv2d(x, tf.cast(w, x.dtype), data_format='NHWC', strides=[1,1,1,1], padding='SAME')
+    
+    # Reshape/scale output.
+    #if fused_modconv:
+    #  x = tf.reshape(x, [-1, fmaps, x.shape[2], x.shape[3]]) # Fused => reshape convolution groups back to minibatch.
+    #elif demodulate:
+    if demodulate:
+      x *= tf.cast(d[:, np.newaxis, np.newaxis, :], x.dtype) # [BhwO] Not fused => scale output activations.
+    return x
+
+  # Single convolution layer with all the bells and whistles.
+  def _style_mod_conv_layer(self, x, z, channels_in, channels_out, scale_up_down_none, suffix, bias_var='bias'):
+    print('entering stylemod x shape',x.shape,'in channels',channels_in,'out channels',channels_out)
+    assert x.shape[3].value == channels_in
+    kernel = 3 # from StyleGAN
+    demodulate = True # from StyleGAN
+    # resample_kernel = [1,3,3,1] # from StyleGAN
+    x = self._modulated_conv2d_layer(x, z, channels_in, channels_out, kernel, scale_up_down_none, demodulate, suffix)
+    print('post-modulation shape',x.shape)
+    #if randomize_noise:
+    #    noise = tf.random_normal([tf.shape(x)[0], 1, x.shape[2], x.shape[3]], dtype=x.dtype)
+    #else:
+    #    noise = tf.cast(noise_inputs[layer_idx], x.dtype)
+    #noise_strength = tf.get_variable('noise_strength', shape=[], initializer=tf.initializers.zeros(), use_resource=True)
+    #x += noise * tf.cast(noise_strength, x.dtype)
+    lrmul = 1
+    c = x.shape[3]
+    assert c == channels_out
+    b = tf.get_variable(suffix+'_'+bias_var, shape=[c], initializer=tf.initializers.zeros(), use_resource=True) * lrmul
+    x = x + b
+    x = ops.lrelu(x)
+    print('leaving stylemod x shape',x.shape)
+    return x
+
+  def _get_weight(self, shape, gain=1, use_wscale=True, lrmul=1, weight_var='weight'):
+      fan_in = np.prod(shape[:-1]) # [kernel, kernel, fmaps_in, fmaps_out] or [in, out]
+      he_std = gain / np.sqrt(fan_in) # He init
+
+      # Equalized learning rate and custom learning rate multiplier.
+      if use_wscale:
+          init_std = 1.0 / lrmul
+          runtime_coef = he_std * lrmul
+      else:
+          init_std = he_std / lrmul
+          runtime_coef = lrmul
+
+      # Create variable.
+      init = tf.initializers.random_normal(0, init_std)
+      return tf.get_variable(weight_var, shape=shape, initializer=init, use_resource=True) * runtime_coef
 
 
 class ResNetGenerator(abstract_arch.AbstractGenerator):
@@ -217,3 +308,4 @@ class ResNetDiscriminator(abstract_arch.AbstractDiscriminator):
         layer_norm=self._layer_norm,
         spectral_norm=self._spectral_norm,
         batch_norm=self.batch_norm)
+        

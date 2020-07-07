@@ -26,12 +26,14 @@ from absl import flags
 from absl import logging
 from compare_gan import test_utils
 from compare_gan import utils
+from compare_gan.gans import utils as gansutils
 from compare_gan.architectures import dcgan
 from compare_gan.architectures import infogan
 from compare_gan.architectures import resnet30
 from compare_gan.architectures import resnet5
 from compare_gan.architectures import resnet_biggan
 from compare_gan.architectures import resnet_biggan_mapping
+from compare_gan.architectures import resnet_biggan_unetdisc
 from compare_gan.architectures import resnet_biggan_deep
 from compare_gan.architectures import resnet_cifar
 from compare_gan.architectures import resnet_stl
@@ -78,7 +80,8 @@ class ModularGAN(AbstractGAN):
                g_lr_mul=1.0,
                d_lr_mul=1.0,
                conditional=False,
-               fit_label_distribution=False):
+               fit_label_distribution=False,
+               dynamic_range=False):
     """ModularGAN  is a Gin configurable implementation of AbstractGAN.
 
     Graph Unrolling:
@@ -145,6 +148,9 @@ class ModularGAN(AbstractGAN):
           "labels".format(self._dataset.name))
     self._conditional = conditional
     self._fit_label_distribution = fit_label_distribution
+    self._dynamic_range = dynamic_range
+    self._drange_images = [0, 1] # Most datasets in this code base are in [0, 1] due to _parse_fn, not [0, 255]
+    self._drange_net = [-1, 1]
 
     self._tpu_summary = tpu_summaries.TpuSummaries(model_dir)
 
@@ -186,6 +192,7 @@ class ModularGAN(AbstractGAN):
           c.RESNET30_ARCH: resnet30.Generator,
           c.RESNET_BIGGAN_ARCH: resnet_biggan.Generator,
           c.RESNET_BIGGAN_MAPPING_ARCH: resnet_biggan_mapping.Generator,
+          c.RESNET_BIGGAN_UNETDISC_ARCH: resnet_biggan_unetdisc.Generator,
           c.RESNET_BIGGAN_DEEP_ARCH: resnet_biggan_deep.Generator,
           c.RESNET_CIFAR_ARCH: resnet_cifar.Generator,
           c.RESNET_STL_ARCH: resnet_stl.Generator,
@@ -211,6 +218,7 @@ class ModularGAN(AbstractGAN):
           c.RESNET30_ARCH: resnet30.Discriminator,
           c.RESNET_BIGGAN_ARCH: resnet_biggan.Discriminator,
           c.RESNET_BIGGAN_MAPPING_ARCH: resnet_biggan_mapping.Discriminator,
+          c.RESNET_BIGGAN_UNETDISC_ARCH: resnet_biggan_unetdisc.Discriminator,
           c.RESNET_BIGGAN_DEEP_ARCH: resnet_biggan_deep.Discriminator,
           c.RESNET_CIFAR_ARCH: resnet_cifar.Discriminator,
           c.RESNET_STL_ARCH: resnet_stl.Discriminator,
@@ -365,6 +373,8 @@ class ModularGAN(AbstractGAN):
                         sample_shape[0], sample_shape[1])
         all_images = tf.image.resize(all_images, sample_shape[0:2], method=tf.image.ResizeMethod.AREA)
         shape = sample_shape
+      if self._dynamic_range:
+        all_images = gansutils.adjust_dynamic_range(all_images, self._drange_net, self._drange_images)
       return tfgan.eval.image_grid(
         all_images,
         grid_shape=grid_shape,
@@ -444,6 +454,8 @@ class ModularGAN(AbstractGAN):
     """Creates the feature dictionary with images and z."""
     logging.info("_preprocess_fn(): images=%s, labels=%s, seed=%s",
                  images, labels, seed)
+    if self._dynamic_range:
+      images = gansutils.adjust_dynamic_range(images, self._drange_images, self._drange_net)
     tf.set_random_seed(seed)
     features = {
         "images": images,
@@ -615,8 +627,6 @@ class ModularGAN(AbstractGAN):
 
     finally:
       self._disc_step = prev
-
-
 
   def model_fn(self, features, labels, params, mode):
     """Constructs the model for the given features and mode.

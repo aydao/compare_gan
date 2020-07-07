@@ -1,0 +1,191 @@
+# Parameters for AdamOptimizer:
+# ==============================================================================
+AdamOptimizer.beta1 = 0.0
+AdamOptimizer.beta2 = 0.999
+AdamOptimizer.epsilon = 1e-08
+AdamOptimizer.use_locking = False
+
+# Parameters for batch_norm:
+# ==============================================================================
+# None.
+
+# Parameters for begin_run:
+# ==============================================================================
+begin_run.model_dir = 'gs://your-bucket-here'
+
+# Parameters for censored_normal:
+# ==============================================================================
+# None.
+
+# Parameters for conditional_batch_norm:
+# ==============================================================================
+conditional_batch_norm.use_bias = False
+
+# Parameters for cross_replica_moments:
+# ==============================================================================
+cross_replica_moments.group_size = None
+cross_replica_moments.parallel = True
+
+# Parameters for D:
+# ==============================================================================
+D.batch_norm_fn = None
+D.layer_norm = False
+D.spectral_norm = True
+
+# Parameters for dataset:
+# ==============================================================================
+dataset.name = 'images_128'
+dataset.seed = 33471
+
+# Parameters for resnet_biggan_unetdisc.Discriminator:
+# ==============================================================================
+resnet_biggan_unetdisc.Discriminator.blocks_with_attention = '64'
+resnet_biggan_unetdisc.Discriminator.ch = 96
+resnet_biggan_unetdisc.Discriminator.channel_multipliers = None
+resnet_biggan_unetdisc.Discriminator.mbstddev = False
+resnet_biggan_unetdisc.Discriminator.mbstddev_group_size = 32
+resnet_biggan_unetdisc.Discriminator.mbstddev_new_features = 1
+resnet_biggan_unetdisc.Discriminator.project_y = True
+
+# Parameters for EDDGAN:
+# ==============================================================================
+EDDGAN.cutmix = True
+EDDGAN.consistency_loss = True
+EDDGAN.consistency_loss_lambda = 0.10
+EDDGAN.pixel_consistency_loss_fn = @pixel_consistency_l2norm
+EDDGAN.pixel_loss_fn = @pixel_hinge
+
+# Parameters for G:
+# ==============================================================================
+G.batch_norm_fn = @conditional_batch_norm
+G.spectral_norm = True
+
+# Parameters for resnet_biggan_unetdisc.Generator:
+# ==============================================================================
+resnet_biggan_unetdisc.Generator.blocks_with_attention = '64'
+resnet_biggan_unetdisc.Generator.ch = 96
+resnet_biggan_unetdisc.Generator.channel_multipliers = None
+resnet_biggan_unetdisc.Generator.demodulate = False
+resnet_biggan_unetdisc.Generator.embed_bias = False
+resnet_biggan_unetdisc.Generator.embed_y = True
+resnet_biggan_unetdisc.Generator.embed_y_dim = 128
+resnet_biggan_unetdisc.Generator.embed_z = False
+resnet_biggan_unetdisc.Generator.hierarchical_z = True
+resnet_biggan_unetdisc.Generator.mapping_lrmul = 1.0
+resnet_biggan_unetdisc.Generator.plain_tanh = False
+resnet_biggan_unetdisc.Generator.use_mapping_network = False
+
+# Parameters for hinge:
+# ==============================================================================
+# None.
+
+# Parameters for loss:
+# ==============================================================================
+loss.fn = @hinge
+
+# Parameters for mixture_latent:
+# ==============================================================================
+mixture_latent.clip_max = 1.0
+mixture_latent.clip_min = 0.0
+mixture_latent.interval = 20
+mixture_latent.mean = 0.0
+mixture_latent.seed = None
+
+# Parameters for ModularGAN:
+# ==============================================================================
+ModularGAN.conditional = True
+ModularGAN.d_lr = 0.0001
+ModularGAN.d_lr_mul = 1.0
+ModularGAN.d_optimizer_fn = @tf.train.AdamOptimizer
+ModularGAN.deprecated_split_disc_calls = False
+ModularGAN.dynamic_range = False
+ModularGAN.ema_decay = 0.999
+ModularGAN.ema_start_step = 40000
+ModularGAN.experimental_force_graph_unroll = False
+ModularGAN.experimental_joint_gen_for_disc = False
+ModularGAN.fit_label_distribution = False
+ModularGAN.g_lr = 2.22e-05
+ModularGAN.g_lr_mul = 1.0
+ModularGAN.g_optimizer_fn = @tf.train.AdamOptimizer
+ModularGAN.g_use_ema = True
+
+# Parameters for no_penalty:
+# ==============================================================================
+# None.
+
+# Parameters for options:
+# ==============================================================================
+options.architecture = 'resnet_biggan_unetdisc_arch'
+options.batch_size = 4096
+options.d_flood = 0.001
+options.datasets = 'gs://ay1-euw4a/datasets/danbooru2019-s/danbooru2019-s-0*'
+options.description = 'BigGAN+UnetDisc'
+options.disc_iters = 2
+options.discriminator_normalization = None
+options.g_flood = 0.001
+options.gan_class = @EDDGAN
+options.image_grid_height = 6
+options.image_grid_resolution = 1024
+options.image_grid_width = 6
+options.labels = ''
+options.lamba = 1
+options.model_dir = None
+options.num_classes = 1000
+options.random_labels = True
+options.training_steps = 2500000
+options.transpose_input = False
+options.z_dim = 120
+
+# Parameters for penalty:
+# ==============================================================================
+penalty.fn = @no_penalty
+
+# Parameters for pixel_hinge:
+# ==============================================================================
+# None.
+
+# Parameters for replace_labels:
+# ==============================================================================
+replace_labels.file_pattern = None
+
+# Parameters for run_config:
+# ==============================================================================
+run_config.experimental_host_call_every_n_steps = 50
+run_config.iterations_per_loop = 250
+run_config.keep_checkpoint_every_n_hours = 0.5
+run_config.keep_checkpoint_max = 10
+run_config.save_checkpoints_steps = 250
+run_config.single_core = False
+run_config.tf_random_seed = None
+
+# Parameters for spectral_norm:
+# ==============================================================================
+spectral_norm.epsilon = 1e-12
+spectral_norm.singular_value = 'auto'
+
+# Parameters for standardize_batch:
+# ==============================================================================
+standardize_batch.decay = 0.9
+standardize_batch.epsilon = 1e-05
+standardize_batch.use_cross_replica_mean = True
+standardize_batch.use_moving_averages = False
+
+# Parameters for TpuSummaries:
+# ==============================================================================
+TpuSummaries.save_image_steps = 50
+TpuSummaries.save_summary_steps = 1
+
+# Parameters for train_imagenet_transform:
+# ==============================================================================
+train_imagenet_transform.crop_method = 'random'
+
+# Parameters for weights:
+# ==============================================================================
+weights.initializer = 'orthogonal'
+
+# Parameters for z:
+# ==============================================================================
+z.distribution_fn = @mixture_latent
+z.maxval = 1.0
+z.minval = -1.0
+z.stddev = 1.0

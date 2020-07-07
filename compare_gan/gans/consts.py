@@ -32,10 +32,14 @@ RESNET5_ARCH = "resnet5_arch"
 RESNET30_ARCH = "resnet30_arch"
 RESNET_BIGGAN_ARCH = "resnet_biggan_arch"
 RESNET_BIGGAN_MAPPING_ARCH = "resnet_biggan_mapping_arch"
+RESNET_BIGGAN_UNETDISC_ARCH = "resnet_biggan_unetdisc_arch"
 RESNET_BIGGAN_DEEP_ARCH = "resnet_biggan_deep_arch"
 RESNET_CIFAR_ARCH = "resnet_cifar_arch"
 RESNET_STL_ARCH = "resnet_stl_arch"
 SNDCGAN_ARCH = "sndcgan_arch"
 ARCHITECTURES = [INFOGAN_ARCH, DCGAN_ARCH, RESNET5_ARCH, RESNET30_ARCH,
-                 RESNET_BIGGAN_ARCH, RESNET_BIGGAN_MAPPING_ARCH, RESNET_BIGGAN_DEEP_ARCH, RESNET_CIFAR_ARCH,
-                 RESNET_STL_ARCH, SNDCGAN_ARCH]
+                 RESNET_BIGGAN_ARCH,
+                 RESNET_BIGGAN_MAPPING_ARCH,
+                 RESNET_BIGGAN_UNETDISC_ARCH,
+                 RESNET_BIGGAN_DEEP_ARCH,
+                 RESNET_CIFAR_ARCH, RESNET_STL_ARCH, SNDCGAN_ARCH]

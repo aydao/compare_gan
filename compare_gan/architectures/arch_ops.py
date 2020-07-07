@@ -561,7 +561,7 @@ def graph_spectral_norm(w):
   name = graph_name(w.name)
   assert tpu_summaries.TpuSummaries.inst is not None
   if name is not None and not tpu_summaries.TpuSummaries.inst.has(name):
-    logging.info("[ops] Graphing spectral norm name=%s, %s", name, repr(w))
+    # logging.info("[ops] Graphing spectral norm name=%s, %s", name, repr(w))
     w1, norm = spectral_norm(w)
     tpu_summaries.TpuSummaries.inst.scalar(name, norm)
   return w
@@ -818,7 +818,7 @@ def censored_normal(shape,
     return value
 
 @gin.configurable("mixture_latent")
-def mixture_latent(shape, # can be [batch_size, z_dim] or [z_dim]
+def mixture_latent(shape, # [batch_size, z_dim]
                   mean=0.0,
                   stddev=1.0,
                   clip_min=0.0,
@@ -851,3 +851,26 @@ def mixture_latent(shape, # can be [batch_size, z_dim] or [z_dim]
       value = joined if value == None else tf.concat([value, joined], axis=axis)
     assert shape == value.shape
     return value
+
+#----------------------------------------------------------------------------
+# Minibatch standard deviation layer.
+def _i(x): return tf.transpose(x, [0,2,3,1]) # NCHW to NHWC
+def _o(x): return tf.transpose(x, [0,3,1,2]) # NHWC to NCHW
+
+def minibatch_stddev_layer(x, group_size, num_new_features):
+  x = _o(x)
+  group_size = tf.minimum(group_size, tf.shape(x)[0])     # Minibatch must be divisible by (or smaller than) group_size.
+  s = x.shape                                             # [NCHW]  Input shape.
+  y = tf.reshape(x, [group_size, -1, num_new_features, s[1]//num_new_features, s[2], s[3]])   # [GMncHW] Split minibatch into M groups of size G. Split channels into n channel groups c.
+  y = tf.cast(y, tf.float32)                              # [GMncHW] Cast to FP32.
+  y -= tf.reduce_mean(y, axis=0, keepdims=True)           # [GMncHW] Subtract mean over group.
+  y = tf.reduce_mean(tf.square(y), axis=0)                # [MncHW]  Calc variance over group.
+  y = tf.sqrt(y + 1e-8)                                   # [MncHW]  Calc stddev over group.
+  y = tf.reduce_mean(y, axis=[2,3,4], keepdims=True)      # [Mn111]  Take average over fmaps and pixels.
+  y = tf.reduce_mean(y, axis=[2])                         # [Mn11] Split channels into c channel groups
+  y = tf.cast(y, x.dtype)                                 # [Mn11]  Cast back to original data type.
+  y = tf.tile(y, [group_size, 1, s[2], s[3]])             # [NnHW]  Replicate over group and pixels.
+  out = tf.concat([x, y], axis=1)                         # [NCHW]  Append as new fmap.
+  out = _i(out)
+  return out
+  
